@@ -92,14 +92,21 @@
     <footer>
         <p>© 2025 TUgether - Thammasat University Event Platform</p>
     </footer>
-    <script>
-    document.querySelector('.logout').addEventListener('click', function () {
-        const confirmLogout = confirm('คุณต้องการออกจากระบบหรือไม่?');
-        if (confirmLogout) {
-            window.location.href = 'login.html';
-        }
-    });
-</script>
+<div id="logoutModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>ออกจากระบบ</h2>
+      <span class="close">&times;</span>
+    </div>
+    <p>คุณต้องการออกจากระบบหรือไม่?</p>
+    <div class="modal-buttons">
+      <button id="cancelLogout">ยกเลิก</button>
+      <button id="confirmLogout">ออกจากระบบ</button>
+    </div>
+  </div>
+</div>
+<script src="home.js"></script>
+</body>
 </body>
 
 </html>

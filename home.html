@@ -92,6 +92,14 @@
     <footer>
         <p>© 2025 TUgether - Thammasat University Event Platform</p>
     </footer>
+    <script>
+    document.querySelector('.logout').addEventListener('click', function () {
+        const confirmLogout = confirm('คุณต้องการออกจากระบบหรือไม่?');
+        if (confirmLogout) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
 </body>
 
 </html>

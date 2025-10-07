@@ -333,6 +333,55 @@ footer {
     text-align: center;
     padding: 15px;
     background-color: rgb(253, 253, 253);
-    /*background-color: #eee;*/
     font-size: 14px;
+}
+button {
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.register-btn {
+  background-color: #d43f00;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: bold;
+}
+
+.register-btn:hover {
+  background-color: #ff5b2e;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 91, 46, 0.4);
+}
+
+.create-event {
+  background-color: #004aad;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: bold;
+}
+
+.create-event:hover {
+  background-color: #006eff;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 110, 255, 0.4);
+}
+
+.logout {
+  background-color: #ff3b3b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin-left: 12px;
+  font-weight: bold;
+}
+
+.logout:hover {
+  background-color: #ff6b6b;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 100, 100, 0.6);
 }

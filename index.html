@@ -26,6 +26,23 @@
         <button id="submitButton">Login to TUgether</button>
         <small>- Only @dome.tu.ac.th emails are accepted</small>
     </div>
+
+    <script>
+        document.getElementById('submitButton').addEventListener('click', function (e) {
+            e.preventDefault();
+            var email = document.getElementById('emailInput').value.trim();
+            var password = document.getElementById('passwordInput').value.trim();
+            if (!email || !password) {
+                alert('กรุณากรอกอีเมลและรหัสผ่าน');
+                return;
+            }
+            if (!email.endsWith('@dome.tu.ac.th')) {
+                alert('กรุณากรอกอีเมล @dome.tu.ac.th');
+                return;
+            }
+            window.location.href = 'home.html';
+        });
+    </script>
 </body>
 
 </html>

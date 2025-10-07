@@ -385,7 +385,6 @@ button {
   transform: scale(1.1);
   box-shadow: 0 0 10px rgba(255, 100, 100, 0.6);
 }
-/* Modal overlay */
 .modal {
   display: none;
   position: fixed;
@@ -394,15 +393,14 @@ button {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.6); /* ด้านหลังมืด */
+  background-color: rgba(0,0,0,0.6); 
   justify-content: center;
   align-items: center;
   animation: fadeIn 0.3s ease-in;
 }
 
-/* Modal Box */
 .modal-content {
-  background-color: #fff5df; /* สีพื้นของ TUgether */
+  background-color: #fff5df; 
   border-radius: 12px;
   padding: 25px 30px;
   width: 350px;
@@ -412,7 +410,6 @@ button {
   animation: slideDown 0.3s ease-in-out;
 }
 
-/* Header */
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -439,14 +436,12 @@ button {
   transform: rotate(90deg);
 }
 
-/* Text */
 .modal-content p {
   font-size: 16px;
   color: #333;
   margin: 15px 0;
 }
 
-/* Buttons */
 .modal-buttons {
   display: flex;
   justify-content: space-around;
@@ -482,7 +477,6 @@ button {
   box-shadow: 0 4px 12px rgba(255,91,91,0.4);
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {opacity: 0;}
   to {opacity: 1;}
@@ -492,3 +486,96 @@ button {
   from {transform: translateY(-30px); opacity:0;}
   to {transform: translateY(0); opacity:1;}
 }
+.event-modal {
+  background-color: white;
+  border-radius: 16px;
+  width: 600px;
+  max-width: 90%;
+  padding: 25px 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+  animation: slideDown 0.3s ease-in-out;
+}
+
+.event-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.event-modal h2 {
+  color: #111;
+  font-size: 22px;
+}
+
+.event-modal .close {
+  cursor: pointer;
+  font-size: 22px;
+  color: #C3002F;
+  transition: transform 0.2s;
+}
+.event-modal .close:hover {
+  transform: rotate(90deg);
+}
+
+.event-info {
+  display: flex;
+  gap: 18px;
+  color: #C3002F;
+  font-weight: 500;
+  margin: 16px 0;
+}
+
+.event-category {
+  display: inline-block;
+  background-color: #fff5e6;
+  color: #C3002F;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.event-organizer {
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #555;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+.modal-footer .cancel {
+  background-color: #ddd;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modal-footer .register {
+  background-color: #C3002F;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modal-footer .register:hover {
+  background-color: #ff5b5b;
+  transform: scale(1.05);
+}
+

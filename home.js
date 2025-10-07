@@ -20,3 +20,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if(e.target === modal) modal.style.display = 'none';
     });
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const logoutBtn = document.querySelector('.logout');
+  const logoutModal = document.getElementById('logoutModal');
+  const closeLogout = document.querySelector('#logoutModal .close');
+  const cancelLogout = document.getElementById('cancelLogout');
+  const confirmLogout = document.getElementById('confirmLogout');
+
+  logoutBtn.addEventListener('click', () => logoutModal.style.display = 'flex');
+  closeLogout.addEventListener('click', () => logoutModal.style.display = 'none');
+  cancelLogout.addEventListener('click', () => logoutModal.style.display = 'none');
+  confirmLogout.addEventListener('click', () => window.location.href = 'login.html');
+
+  const eventModal = document.getElementById('eventDetailModal');
+  const closeEventModal = document.querySelector('#eventDetailModal .close');
+  const cancelEventModal = document.getElementById('closeEventModal');
+  const registerEventBtn = document.getElementById('registerEvent');
+
+  const registerBtns = document.querySelectorAll('.register-btn');
+  registerBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      eventModal.style.display = 'flex';
+    });
+  });
+
+  [closeEventModal, cancelEventModal].forEach(el => {
+    el.addEventListener('click', () => eventModal.style.display = 'none');
+  });
+
+  window.addEventListener('click', e => {
+    if (e.target === eventModal) eventModal.style.display = 'none';
+  });
+
+  registerEventBtn.addEventListener('click', () => {
+    alert('✅ คุณได้ลงทะเบียนกิจกรรมนี้แล้ว!');
+    eventModal.style.display = 'none';
+  });
+});

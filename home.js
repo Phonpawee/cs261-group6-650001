@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   logoutBtn.addEventListener('click', () => logoutModal.style.display = 'flex');
   closeLogout.addEventListener('click', () => logoutModal.style.display = 'none');
   cancelLogout.addEventListener('click', () => logoutModal.style.display = 'none');
-  confirmLogout.addEventListener('click', () => window.location.href = 'login.html');
+  confirmLogout.addEventListener('click', () => window.location.href = 'index.html');
 
   const eventModal = document.getElementById('eventDetailModal');
   const closeEventModal = document.querySelector('#eventDetailModal .close');

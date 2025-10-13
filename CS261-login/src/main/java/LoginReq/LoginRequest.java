@@ -2,7 +2,7 @@ package LoginReq;
 
 public class LoginRequest {
     private String email;
-    private String nationalId; //เลขบัตร
+    private String nationalId; 
     public LoginRequest() {
     }
 

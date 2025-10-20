@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugether</title>
+    <link rel="stylesheet" href="/styles.css"> 
+</head>
+
+<body>
+    <div class="LoginBox">
+        <div class="brand">
+            <img class="logo" src="/asset/19eff9b8125bb9fa4eae986fb9feeab43db902e1-removebg-preview.png"
+                alt="TUgether Logo">
+            <div class="brand-text">
+                <h1>TUgether</h1>
+                <h2>Building Community Together</h2>
+            </div>
+        </div>
+        <p class="tagline">Connect with the TU community</p>
+        <label for="emailInput">Email</label>
+        <input type="email" id="emailInput" placeholder="your.name@dome.tu.ac.th" autocomplete="email">
+        <label for="passwordInput">Password</label>
+        <input type="password" id="passwordInput" placeholder="Enter your password (Citizen ID)" autocomplete="current-password">
+        <button id="submitButton">Login to TUgether</button>
+        <small>- Only @dome.tu.ac.th emails are accepted</small>
+    </div>
+
+    <script>
+        document.getElementById('submitButton').addEventListener('click', async function (e) {
+            e.preventDefault();
+            
+            var email = document.getElementById('emailInput').value.trim();
+            var citizenId = document.getElementById('passwordInput').value.trim(); // ใช้ค่าจากช่อง Password เป็น Citizen ID
+            
+            // ตรวจสอบข้อมูลพื้นฐาน
+            if (!email || !citizenId) {
+                alert('กรุณากรอกอีเมลและรหัสผ่าน');
+                return;
+            }
+            if (!email.endsWith('@dome.tu.ac.th')) {
+                alert('กรุณากรอกอีเมล @dome.tu.ac.th');
+                return;
+            }
+
+            // สร้าง JSON Body ที่ถูกต้องสำหรับ Backend (Key ต้องเป็น citizenId)
+            const loginData = {
+                "email": email,
+                "citizenId": citizenId 
+            };
+
+            try {
+                // เรียก API Login 
+                const response = await fetch('http://localhost:8081/api/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+                
+                const result = await response.text(); 
+
+                // จัดการผลลัพธ์จาก Backend
+                if (result === 'Login success') {
+                    alert('Login success'); 
+                    window.location.href = '/home.html'; // ใช้ Absolute Path
+                } else {
+                    alert('กรุณากรอกข้อมูลใหม่: ' + result); 
+                }
+
+            } catch (error) {
+                console.error('Error during fetch:', error);
+                alert('❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+            }
+        });
+    </script>
+</body>
+
+</html>

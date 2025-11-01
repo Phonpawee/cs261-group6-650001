@@ -1,0 +1,6 @@
+com\example\LoginTUgether\LogTUgetherApplication.class
+com\example\LoginTUgether\ServletInitializer.class
+com\example\LoginTUgether\model\User.class
+com\example\LoginTUgether\repo\UserRepository.class
+com\example\LoginTUgether\req\LoginRequest.class
+com\example\LoginTUgether\controller\UserController.class

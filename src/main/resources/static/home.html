@@ -2,143 +2,158 @@
 <html lang="th">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUgether - Thammasat Events</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TUgether - Thammasat Events</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <header>
-        <div class="navbar">
-            <div class="brand">
-                <img class="logo" src="asset/19eff9b8125bb9fa4eae986fb9feeab43db902e1-removebg-preview.png"
-                    alt="TUgether Logo">
-                <h1>TUgether</h1>
-                <div class="user-info">
-                    <span>Admin@dome.tu.ac.th</span>
-                    <button class="logout">Logout</button>
-                </div>
-            </div>
-    </header>
+  <!-- Header -->
+  <header>
+    <div class="navbar">
+      <div class="brand">
+        <img class="logo" src="asset/19eff9b8125bb9fa4eae986fb9feeab43db902e1-removebg-preview.png" alt="TUgether Logo">
+        <h1>TUgether</h1>
+      </div>
+      <div class="user-info">
+        <span>Admin@dome.tu.ac.th</span>
+        <button class="logout">Logout</button>
+      </div>
+    </div>
+  </header>
 
+  <!-- Tabs -->
+  <nav class="tabs">
+    <button class="tab active" data-target="all-events">All Events</button>
+    <button class="tab" data-target="my-registrations">My Registrations</button>
+    <button class="tab" data-target="my-events">My Events</button>
+    <button class="tab" data-target="create-event">Create Event</button>
+  </nav>
+
+  <!-- All Events -->
+  <section id="all-events" class="tab-content active">
     <div class="welcome">
-        <h2>Welcome to <span>TUgether</span></h2>
-        <p>Discover and join amazing events at Thammasat University</p>
+      <h2>Welcome to <span>TUgether</span></h2>
+      <p>Discover and join amazing events at Thammasat University</p>
     </div>
 
     <main>
-        <section class="events">
-            <div class="events-header">
-                <h3>Upcoming Events</h3>
-                <button class="create-event">+ Create Event</button>
+      <section class="events">
+        <div class="events-header">
+          <h3>Upcoming Events</h3>
+        </div>
+		
+		<div class="search-container">
+		  <input type="text" id="searchInput" placeholder="Search events..." />
+		  <select id="categoryFilter">
+		    <option value="">All</option>
+		    <option value="Career">Career</option>
+		    <option value="Technology">Technology</option>
+		    <option value="Sports">Sports</option>
+		    <option value="Culture">Culture</option>
+		  </select>
+		  <select id="dateFilter">
+		    <option value="">All Dates</option>
+		    <option value="today">Today</option>
+		    <option value="this-week">This Week</option>
+		    <option value="next-week">Next Week</option>
+		  </select>
+		</div>
+
+
+        <div class="event-list">
+          <div class="event-card">
+            <h4>TUgether Career Fair 2025</h4>
+            <div class="category">Career</div>
+            <div class="event-details">
+              <p>Date: 25 พฤษภาคม 2568 at 10:00</p>
+              <p>48/50 registered</p>
+              <p>พบกับบริษัทเทคชั้นนำและโอกาสด้านอาชีพ</p>
+              <hr>
             </div>
-
-            <div class="event-list">
-                <div class="event-card">
-                    <h4>TUgether Career Fair 2025</h4>
-                    <div class="category">Career</div>
-                    <div class="event-details">
-                        <p>Date: 25 พฤษภาคม 2568 at 10:00</p>
-                        <p>48/50 registered</p>
-                        <p>พบกับบริษัทเทคชั้นนำและโอกาสด้านอาชีพ</p>
-                        <p>__________________________________________________________</p>
-                    </div>
-                    <div class="event-action-row">
-                        <p class="seat"><strong>2 seats avaliable</strong></p>
-                        <p class="registered"><strong>Registered</strong></p>
-                    </div>
-                </div>
-
-                <div class="event-card">
-                    <h4>React Workshop: Building TUgether</h4>
-                    <div class="category">Technology</div>
-
-                    <div class="event-details">
-                        <p>Date: 27 พฤษภาคม 2568 at 14:00</p>
-                        <p>22/30 registered</p>
-                        <p>เรียนรู้การพัฒนาเว็บและสร้างเครือข่าย</p>
-                        <p>__________________________________________________________</p>
-                    </div>
-                    <div class="event-action-row">
-                        <p class="seat"><strong>8 seats avaliable</strong></p>
-                        <button class="register-btn"><strong>Register</strong></button>
-                    </div>
-                </div>
-                <div class="event-card">
-                    <h4>TUgether Sports Festival</h4>
-                    <div class="category">Sports</div>
-
-                    <div class="event-details">
-                        <p>Date: 28 พฤษภาคม 2568 at 09:00</p>
-                        <p>16/30 registered</p>
-                        <p>กิจกรรมกีฬาเพื่อความสนุกและสร้างความสัมพันธ์</p>
-                        <p>__________________________________________________________</p>
-                    </div>
-                    <div class="event-action-row">
-                        <p class="seat"><strong>14 seats avaliable</strong></p>
-                        <button class="register-btn"><strong>Register</strong></button>
-                    </div>
-
-
-
-                </div>
+            <div class="event-action-row">
+              <p class="seat"><strong>2 seats available</strong></p>
+              <p class="registered"><strong>Registered</strong></p>
             </div>
+          </div>
 
+          <div class="event-card">
+            <h4>React Workshop: Building TUgether</h4>
+            <div class="category">Technology</div>
+            <div class="event-details">
+              <p>Date: 27 พฤษภาคม 2568 at 14:00</p>
+              <p>22/30 registered</p>
+              <p>เรียนรู้การพัฒนาเว็บและสร้างเครือข่าย</p>
+              <hr>
+            </div>
+            <div class="event-action-row">
+              <p class="seat"><strong>8 seats available</strong></p>
+              <button class="register-btn"><strong>Register</strong></button>
+            </div>
+          </div>
 
-        </section>
+          <div class="event-card">
+            <h4>TUgether Sports Festival</h4>
+            <div class="category">Sports</div>
+            <div class="event-details">
+              <p>Date: 28 พฤษภาคม 2568 at 09:00</p>
+              <p>16/30 registered</p>
+              <p>กิจกรรมกีฬาเพื่อความสนุกและสร้างความสัมพันธ์</p>
+              <hr>
+            </div>
+            <div class="event-action-row">
+              <p class="seat"><strong>14 seats available</strong></p>
+              <button class="register-btn"><strong>Register</strong></button>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+  </section>
 
-    <footer>
-        <p>© 2025 TUgether - Thammasat University Event Platform</p>
-    </footer>
-<div id="logoutModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>ออกจากระบบ</h2>
-      <span class="close">&times;</span>
-    </div>
-    <p>คุณต้องการออกจากระบบหรือไม่?</p>
-    <div class="modal-buttons">
-      <button id="cancelLogout">ยกเลิก</button>
-      <button id="confirmLogout">ออกจากระบบ</button>
-    </div>
-  </div>
-</div>
-<script src="home.js"></script>
-</body>
-<div id="eventDetailModal" class="modal">
-  <div class="modal-content event-modal">
-    <div class="modal-header">
-      <h2 id="eventTitle">TUgether Career Fair 2025</h2>
-      <span class="close">&times;</span>
-    </div>
+  <!-- My Registrations -->
+  <section id="my-registrations" class="tab-content">
+    <h2 class="section-title">My Registrations</h2>
+    <p class="section-desc">กิจกรรมทั้งหมดที่คุณลงทะเบียนไว้จะแสดงที่นี่</p>
+  </section>
 
-    <div class="modal-body">
-      <div class="event-info">
-        <p>📅 <span id="eventDate">15 ตุลาคม 2568</span></p>
-        <p>⏰ <span id="eventTime">10:00</span></p>
-        <p>👥 <span id="eventRegister">2/50 registered</span></p>
-      </div>
+  <!-- My Events -->
+  <section id="my-events" class="tab-content">
+    <h2 class="section-title">My Events</h2>
+    <p class="section-desc">รายการกิจกรรมที่คุณเป็นผู้จัดจะปรากฏในหน้านี้</p>
+  </section>
 
-      <span class="event-category" id="eventCategory">CAREER</span>
+  <!-- Create Event -->
+  <section id="create-event" class="tab-content">
+    <h2 class="section-title">Create Event</h2>
+    <form class="create-form">
+      <label>Event Name</label>
+      <input type="text" placeholder="กรอกชื่อกิจกรรม" required>
 
-      <p id="eventDescription">
-        Connect with leading tech companies and explore career opportunities.
-        Come together with industry professionals and fellow students!
-      </p>
+      <label>Date & Time</label>
+      <input type="datetime-local" required>
 
-      <div class="event-organizer">
-        Organized by: <strong id="eventOrganizer">admin@dome.tu.ac.th</strong>
-      </div>
-    </div>
+      <label>Category</label>
+      <select>
+        <option>Career</option>
+        <option>Technology</option>
+        <option>Sports</option>
+        <option>Culture</option>
+      </select>
 
-    <div class="modal-footer">
-      <button id="closeEventModal" class="cancel">Close</button>
-      <button id="registerEvent" class="register">Register</button>
-    </div>
-  </div>
-</div>
+      <label>Description</label>
+      <textarea placeholder="รายละเอียดกิจกรรม..." required></textarea>
+
+      <button type="submit" class="create-btn">Create</button>
+    </form>
+  </section>
+
+  <footer>
+    <p>© 2025 TUgether - Thammasat University Event Platform</p>
+  </footer>
+
+  <script src="home.js"></script>
 </body>
 
 </html>

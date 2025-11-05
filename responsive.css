@@ -1,0 +1,182 @@
+/* ==================== responsive.css ==================== */
+
+/* --- Base reset --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* --- Layout system --- */
+:root {
+  --max: 1200px;
+  --gap: 1rem;
+}
+.container {
+  width: min(100% - 2rem, var(--max));
+  margin-inline: auto;
+}
+.grid {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(12, 1fr);
+}
+.col-12 { grid-column: span 12; }
+.col-8  { grid-column: span 8; }
+.col-6  { grid-column: span 6; }
+.col-4  { grid-column: span 4; }
+
+/* --- Breakpoints --- */
+@media (min-width: 768px) {
+  .md-6 { grid-column: span 6; }
+  .md-8 { grid-column: span 8; }
+  .md-4 { grid-column: span 4; }
+}
+@media (min-width: 1024px) {
+  .lg-3 { grid-column: span 3; }
+  .lg-4 { grid-column: span 4; }
+  .lg-6 { grid-column: span 6; }
+}
+
+/* --- Utility classes --- */
+.break-anywhere { overflow-wrap: anywhere; }
+.table-wrap { overflow-x: auto; }
+
+/* --- Login page responsive --- */
+body:has(.LoginBox) {
+  min-height: 100vh;
+  min-height: 100dvh; /* Safari safe */
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.LoginBox {
+  width: min(100% - 32px, 420px);
+  margin: 0 auto;
+  padding: clamp(18px, 2.5vw, 25px);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.logo { max-width: 72px; height: auto; }
+.brand-text h1 {
+  font-size: clamp(20px, 3.6vw, 24px);
+}
+.brand-text h2 {
+  font-size: clamp(11px, 2.6vw, 13px);
+}
+
+/* --- Navbar --- */
+header > .navbar {
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  padding: 14px 16px;
+  width: min(100% - 2rem, var(--max));
+  margin-inline: auto;
+}
+.navbar h1 { font-size: clamp(18px, 3vw, 24px); }
+.user-info {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* --- Tabs --- */
+.tabs {
+  width: min(100% - 2rem, 1000px);
+  margin-inline: auto;
+}
+@media (max-width: 640px) {
+  .tabs { flex-direction: column; }
+  .tab { width: 100%; }
+}
+
+/* --- Welcome --- */
+.welcome h2 {
+  font-size: clamp(24px, 5.5vw, 40px);
+  margin-top: 24px;
+}
+.welcome p {
+  font-size: clamp(14px, 3.8vw, 18px);
+  margin-top: 4px;
+}
+
+/* --- Main section --- */
+main {
+  padding: clamp(12px, 2.5vw, 20px);
+}
+
+/* --- Event header --- */
+.events-header { gap: 12px; }
+@media (max-width: 768px) {
+  .events-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* --- Events title --- */
+.events h3 {
+  margin-left: 0;
+  text-align: center;
+}
+
+/* --- Event list & cards --- */
+.event-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  justify-items: stretch;
+  margin-bottom: 24px;
+}
+.event-card {
+  width: auto;
+  padding: clamp(14px, 2.5vw, 20px);
+}
+
+/* --- Create event form --- */
+.create-form {
+  width: min(100% - 2rem, 720px);
+  margin-inline: auto;
+}
+@media (max-width: 520px) {
+  .create-form { padding: 16px; }
+}
+
+/* --- Search bar --- */
+.search-container {
+  width: min(100% - 2rem, 1100px);
+  margin-inline: auto;
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+@media (max-width: 768px) {
+  .search-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-container input {
+    min-width: 0; /* override 260px from base */
+  }
+}
+
+/* --- Accessibility helpers --- */
+:focus-visible {
+  outline: 3px solid #FFD13F;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==================== END ==================== */

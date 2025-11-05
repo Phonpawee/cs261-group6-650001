@@ -1,20 +1,26 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TUgether - Thammasat Events</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="responsive.css" />
 </head>
 
 <body>
   <!-- Header -->
   <header>
-    <div class="navbar">
+    <div class="navbar container">
       <div class="brand">
-        <img class="logo" src="asset/19eff9b8125bb9fa4eae986fb9feeab43db902e1-removebg-preview.png" alt="TUgether Logo">
-        <h1>TUgether</h1>
+        <img
+          class="logo"
+          src="asset/19eff9b8125bb9fa4eae986fb9feeab43db902e1-removebg-preview.png"
+          alt="TUgether Logo"
+        />
+        <div class="brand-text">
+          <h1>TUgether</h1>
+        </div>
       </div>
       <div class="user-info">
         <span>Admin@dome.tu.ac.th</span>
@@ -38,29 +44,28 @@
       <p>Discover and join amazing events at Thammasat University</p>
     </div>
 
-    <main>
+    <main class="container">
       <section class="events">
         <div class="events-header">
           <h3>Upcoming Events</h3>
         </div>
-		
-		<div class="search-container">
-		  <input type="text" id="searchInput" placeholder="Search events..." />
-		  <select id="categoryFilter">
-		    <option value="">All</option>
-		    <option value="Career">Career</option>
-		    <option value="Technology">Technology</option>
-		    <option value="Sports">Sports</option>
-		    <option value="Culture">Culture</option>
-		  </select>
-		  <select id="dateFilter">
-		    <option value="">All Dates</option>
-		    <option value="today">Today</option>
-		    <option value="this-week">This Week</option>
-		    <option value="next-week">Next Week</option>
-		  </select>
-		</div>
 
+        <div class="search-container">
+          <input type="text" id="searchInput" placeholder="Search events..." />
+          <select id="categoryFilter">
+            <option value="">All</option>
+            <option value="Career">Career</option>
+            <option value="Technology">Technology</option>
+            <option value="Sports">Sports</option>
+            <option value="Culture">Culture</option>
+          </select>
+          <select id="dateFilter">
+            <option value="">All Dates</option>
+            <option value="today">Today</option>
+            <option value="this-week">This Week</option>
+            <option value="next-week">Next Week</option>
+          </select>
+        </div>
 
         <div class="event-list">
           <div class="event-card">
@@ -70,7 +75,7 @@
               <p>Date: 25 พฤษภาคม 2568 at 10:00</p>
               <p>48/50 registered</p>
               <p>พบกับบริษัทเทคชั้นนำและโอกาสด้านอาชีพ</p>
-              <hr>
+              <hr />
             </div>
             <div class="event-action-row">
               <p class="seat"><strong>2 seats available</strong></p>
@@ -85,7 +90,7 @@
               <p>Date: 27 พฤษภาคม 2568 at 14:00</p>
               <p>22/30 registered</p>
               <p>เรียนรู้การพัฒนาเว็บและสร้างเครือข่าย</p>
-              <hr>
+              <hr />
             </div>
             <div class="event-action-row">
               <p class="seat"><strong>8 seats available</strong></p>
@@ -100,7 +105,7 @@
               <p>Date: 28 พฤษภาคม 2568 at 09:00</p>
               <p>16/30 registered</p>
               <p>กิจกรรมกีฬาเพื่อความสนุกและสร้างความสัมพันธ์</p>
-              <hr>
+              <hr />
             </div>
             <div class="event-action-row">
               <p class="seat"><strong>14 seats available</strong></p>
@@ -129,10 +134,10 @@
     <h2 class="section-title">Create Event</h2>
     <form class="create-form">
       <label>Event Name</label>
-      <input type="text" placeholder="กรอกชื่อกิจกรรม" required>
+      <input type="text" placeholder="กรอกชื่อกิจกรรม" required />
 
       <label>Date & Time</label>
-      <input type="datetime-local" required>
+      <input type="datetime-local" required />
 
       <label>Category</label>
       <select>
@@ -155,5 +160,4 @@
 
   <script src="home.js"></script>
 </body>
-
 </html>

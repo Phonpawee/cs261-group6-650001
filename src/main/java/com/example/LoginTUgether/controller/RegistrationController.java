@@ -29,6 +29,13 @@ public class RegistrationController {
     @Autowired
     private UserRepository userRepository;
     
+    /**
+     * ลงทะเบียนเข้าร่วมกิจกรรม
+     * Test case 1: เมื่อมีที่ว่างเหลือ สามารถกดลงทะเบียนได้
+     * Test case 5: บันทึกข้อมูลและลดจำนวนที่นั่ง
+     * Test case 6: แสดงข้อความเมื่อเต็ม
+     * Test case 7: แสดงข้อความเมื่อลงทะเบียนซ้ำ
+     */
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> registerEvent(
             @RequestParam Long userId, 
@@ -36,18 +43,20 @@ public class RegistrationController {
         
         Map<String, Object> response = new HashMap<>();
         
+        // ตรวจสอบว่า User และ Event มีอยู่จริง
         Optional<User> userOpt = userRepository.findById(userId);
         Optional<Event> eventOpt = eventRepository.findById(eventId);
         
         if (!userOpt.isPresent() || !eventOpt.isPresent()) {
             response.put("success", false);
-            response.put("message", "User หรือ Event ไม่พบ");
+            response.put("message", "ไม่พบผู้ใช้หรือกิจกรรม");
             return ResponseEntity.badRequest().body(response);
         }
         
         User user = userOpt.get();
         Event event = eventOpt.get();
         
+        // Test case 7: ตรวจสอบว่าลงทะเบียนแล้วหรือยัง
         Optional<Registration> existingReg = registrationRepository
                 .findByUserIdAndEventId(userId, eventId);
         
@@ -57,12 +66,14 @@ public class RegistrationController {
             return ResponseEntity.badRequest().body(response);
         }
         
+        // Test case 6: ตรวจสอบว่าที่นั่งเต็มหรือไม่
         if (event.getCurrentParticipants() >= event.getMaxParticipants()) {
             response.put("success", false);
             response.put("message", "จำนวนที่นั่งเต็ม");
             return ResponseEntity.badRequest().body(response);
         }
         
+        // Test case 1 & 5: บันทึกการลงทะเบียนและอัปเดตจำนวนผู้เข้าร่วม
         Registration registration = new Registration();
         registration.setUser(user);
         registration.setEvent(event);
@@ -70,8 +81,10 @@ public class RegistrationController {
         
         registrationRepository.save(registration);
         
+        // อัปเดตจำนวนผู้เข้าร่วมปัจจุบัน
         event.setCurrentParticipants(event.getCurrentParticipants() + 1);
         
+        // เปลี่ยนสถานะเป็น FULL ถ้าเต็ม
         if (event.getCurrentParticipants() >= event.getMaxParticipants()) {
             event.setStatus("FULL");
         }
@@ -85,6 +98,10 @@ public class RegistrationController {
         return ResponseEntity.ok(response);
     }
     
+    /**
+     * ยกเลิกการลงทะเบียน
+     * Test case 2: เมื่อลงทะเบียนแล้ว สามารถยกเลิกได้
+     */
     @DeleteMapping("/cancel")
     public ResponseEntity<Map<String, Object>> cancelRegistration(
             @RequestParam Long userId, 
@@ -104,10 +121,13 @@ public class RegistrationController {
         Registration registration = regOpt.get();
         Event event = registration.getEvent();
         
+        // ลบการลงทะเบียน
         registrationRepository.delete(registration);
         
+        // ลดจำนวนผู้เข้าร่วม
         event.setCurrentParticipants(event.getCurrentParticipants() - 1);
         
+        // เปลี่ยนสถานะกลับเป็น OPEN ถ้ายังไม่เต็ม
         if (event.getCurrentParticipants() < event.getMaxParticipants()) {
             event.setStatus("OPEN");
         }
@@ -120,12 +140,20 @@ public class RegistrationController {
         return ResponseEntity.ok(response);
     }
     
+    /**
+     * ดูรายการกิจกรรมที่ลงทะเบียนไว้
+     * Test case 1: ระบบแสดงรายการกิจกรรมที่ผู้ใช้ลงทะเบียนไว้ทั้งหมด
+     * Test case 2: แต่ละกิจกรรมมีการแสดงสถานะที่ชัดเจน
+     */
     @GetMapping("/my-registrations/{userId}")
     public ResponseEntity<List<Registration>> getMyRegistrations(@PathVariable Long userId) {
         List<Registration> registrations = registrationRepository.findByUserId(userId);
         return ResponseEntity.ok(registrations);
     }
     
+    /**
+     * ตรวจสอบว่าผู้ใช้ลงทะเบียนกิจกรรมนี้แล้วหรือยัง
+     */
     @GetMapping("/check")
     public ResponseEntity<Map<String, Object>> checkRegistration(
             @RequestParam Long userId, 
@@ -142,8 +170,5 @@ public class RegistrationController {
         }
         
         return ResponseEntity.ok(response);
-    }
-    public Integer getMaxParticipants() {
-        return getMaxParticipants();
     }
 }

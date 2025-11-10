@@ -11,13 +11,13 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "name", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String name;
 
     @Column(nullable = false)
     private String category;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "description", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
     @Column(nullable = false)

@@ -170,6 +170,7 @@ header {
   padding: 6px 12px;
   margin-left: 12px;
   font-weight: bold;
+  width: auto;
 }
 
 .logout:hover {
@@ -201,6 +202,7 @@ header {
   cursor: pointer;
   transition: all 0.25s ease;
   font-size: 15px;
+  width: auto;
 }
 
 .tab:hover {
@@ -246,12 +248,41 @@ main {
   margin-left: 100px;
 }
 
+.section-title {
+  font-size: 32px;
+  text-align: center;
+  color: #C3002F;
+  margin-bottom: 10px;
+}
+
+.section-desc {
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+
 .event-list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 24px;
   margin-bottom: 24px;
+  min-height: 200px;
+}
+
+.loading-message,
+.no-events,
+.error-message {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+  width: 100%;
+}
+
+.error-message {
+  color: #d32f2f;
 }
 
 .event-card {
@@ -261,6 +292,12 @@ main {
   padding: 20px;
   width: 350px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .event-card h4 {
@@ -270,42 +307,226 @@ main {
 }
 
 .category {
+  display: inline-block;
   color: #d32f2f;
   background-color: rgb(255, 245, 223);
   border-radius: 5px;
   padding: 4px 8px;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: bold;
-  margin: 10px 0;
+  margin: 10px 5px 10px 0;
+}
+
+/* -------------------- STATUS BADGES -------------------- */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  margin: 5px;
+}
+
+.status-badge.open {
+  background-color: #4caf50;
+  color: white;
+}
+
+.status-badge.full {
+  background-color: #ff9800;
+  color: white;
+}
+
+.status-badge.registered {
+  background-color: #2196f3;
+  color: white;
+}
+
+.status-badge.cancelled {
+  background-color: #757575;
+  color: white;
+}
+
+.status-badge.closed {
+  background-color: #f44336;
+  color: white;
+}
+
+.seats-left {
+  color: #4caf50;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.event-details {
+  margin: 15px 0;
 }
 
 .event-details p {
-  margin: 6px 0;
-  font-size: 15px;
-  color: rgb(117, 115, 115);
+  margin: 8px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.event-details .description {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  color: #666;
+  line-height: 1.5;
 }
 
 .event-action-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  margin-top: 15px;
 }
 
-.register-btn {
-  background-color: #d43f00;
-  color: white;
+/* -------------------- BUTTONS -------------------- */
+.btn-view-details,
+.btn-register,
+.btn-cancel-registration {
+  padding: 8px 16px;
   border: none;
   border-radius: 8px;
-  padding: 8px 16px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.25s ease;
+  font-size: 14px;
+  width: auto;
 }
 
-.register-btn:hover {
-  background-color: #ff5b2e;
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(255, 91, 46, 0.4);
+.btn-view-details {
+  background-color: #757575;
+  color: white;
+}
+
+.btn-view-details:hover {
+  background-color: #616161;
+  transform: translateY(-2px);
+}
+
+.btn-register {
+  background-color: #4caf50;
+  color: white;
+  flex: 1;
+}
+
+.btn-register:hover:not(:disabled) {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.btn-register:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.btn-cancel-registration {
+  background-color: #f44336;
+  color: white;
+  flex: 1;
+}
+
+.btn-cancel-registration:hover {
+  background-color: #da190b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+/* -------------------- MODAL -------------------- */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 20px;
+}
+
+.close:hover {
+  color: #000;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  color: #C3002F;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.modal-body {
+  margin: 20px 0;
+}
+
+.modal-info p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.modal-description {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #eee;
+}
+
+.modal-description h3 {
+  color: #C3002F;
+  margin-bottom: 10px;
+}
+
+.modal-description p {
+  line-height: 1.6;
+  color: #555;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
 }
 
 /* -------------------- CREATE EVENT -------------------- */
@@ -324,6 +545,8 @@ main {
   font-weight: bold;
   color: #C3002F;
   margin-top: 10px;
+  width: 100%;
+  display: block;
 }
 
 .create-form input,
@@ -334,6 +557,7 @@ main {
   border-radius: 6px;
   border: 1px solid #ddd;
   font-size: 15px;
+  width: 100%;
 }
 
 .create-form textarea {
@@ -346,15 +570,17 @@ main {
   border: none;
   color: white;
   font-weight: bold;
-  padding: 10px;
+  padding: 12px;
   border-radius: 8px;
   margin-top: 20px;
   cursor: pointer;
   transition: transform 0.2s ease;
+  width: 100%;
 }
 
 .create-btn:hover {
   transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(195, 0, 47, 0.3);
 }
 
 /* -------------------- TAB CONTENT -------------------- */
@@ -365,10 +591,10 @@ main {
 
 .tab-content.active {
   display: block;
-  animation: fadeIn 0.4s ease-in;
+  animation: fadeInContent 0.4s ease-in;
 }
 
-@keyframes fadeIn {
+@keyframes fadeInContent {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
@@ -379,9 +605,10 @@ footer {
   padding: 15px;
   background-color: rgb(253, 253, 253);
   font-size: 14px;
+  margin-top: 40px;
 }
 
-/* ---------- SEARCH BAR ---------- */
+/* -------------------- SEARCH BAR -------------------- */
 .search-container {
   display: flex;
   justify-content: center;
@@ -432,3 +659,38 @@ footer {
   box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.2);
 }
 
+/* -------------------- RESPONSIVE -------------------- */
+@media (max-width: 768px) {
+  .event-card {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .search-container {
+    flex-direction: column;
+    width: 95%;
+  }
+
+  .search-container input {
+    width: 100%;
+  }
+
+  .navbar {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .user-info {
+    margin-left: 0;
+  }
+
+  .tabs {
+    width: 95%;
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    flex: 1 1 45%;
+  }
+}

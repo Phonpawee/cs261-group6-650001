@@ -32,15 +32,16 @@ public class Event {
     @Column(nullable = false)
     private String status = "OPEN";
 
-    @ManyToOne
-    @JoinColumn(name = "organizer_id")
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "organizer_id", nullable = true)
     private User organizer;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     // ✅ Constructors
-    public Event() {}
+    public Event() {
+    }
 
     // ✅ Getters and Setters
     public Long getId() {

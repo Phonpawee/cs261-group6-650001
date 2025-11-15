@@ -1,42 +1,56 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   // ==========================================
-  // 🎯 Configuration & State
+  // CONFIG
   // ==========================================
-  const API_BASE_URL = 'http://localhost:8081/api'; 
+  const API_BASE_URL = 'http://localhost:8081/api';
   const EVENTS_API = `${API_BASE_URL}/events`;
   const REGISTRATIONS_API = `${API_BASE_URL}/registrations`;
-  
-  // 🔑 ตรวจสอบว่ามีการ Login หรือยัง (ใช้ studentId)
+
+  // เช็ค login
   const studentId = localStorage.getItem('studentId');
-  
-  // ถ้ายังไม่ได้ login ให้ redirect กลับไปหน้า login
   if (!studentId) {
     alert('กรุณา Login ก่อนใช้งาน');
     window.location.href = 'index.html';
-    throw new Error('Not logged in');
+    return;
   }
-  
-  // 🔑 User ID (ในระบบจริงควรได้จาก API/JWT)
-  const CURRENT_USER_ID = 1; // ⬅️ ปรับตามฐานข้อมูลของคุณ
-  const CURRENT_USER_STUDENT_ID = studentId; // ใช้ studentId จาก localStorage
 
-  // DOM Elements
+  // ==========================================
+  // โหลดโปรไฟล์
+  // ==========================================
+  async function loadProfile() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/profile/std-info?id=${studentId}`);
+      const profile = await res.json();
+
+      document.getElementById('userEmail').textContent =
+        profile.email || profile.displayname_en || profile.displayname_th || studentId;
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('userEmail').textContent = studentId;
+    }
+  }
+
+  loadProfile();
+
+  // User ID (ระบบจริงต้องได้จาก token)
+  const CURRENT_USER_ID = 1;
+
+  // DOM
   const allEventsListContainer = document.getElementById('allEventsList');
   const myRegistrationsListContainer = document.getElementById('myRegistrationsList');
   const myEventsListContainer = document.getElementById('myEventsList');
+
   const eventModal = document.getElementById('eventDetailModal');
   const closeModal = document.querySelector('.close');
   const modalRegisterBtn = document.getElementById('modalRegisterBtn');
   const modalCancelBtn = document.getElementById('modalCancelBtn');
 
-  // State
   let currentEventId = null;
   let registeredEventIds = new Set();
 
-  // Set user email
-  document.getElementById('userEmail').textContent = CURRENT_USER_STUDENT_ID;
-
+  document.getElementById('userEmail').textContent = studentId;
 
   // ==========================================
   // 🔄 Tab Navigation

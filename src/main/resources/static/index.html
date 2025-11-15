@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!<!DOCTYPE html>
 <html lang="th">
 
 <head>
@@ -9,59 +9,79 @@
 </head>
 
 <body>
+
     <div class="LoginBox">
+
         <div class="brand">
-            <img class="logo" src="asset/19eff9b8125bb9fa4eae986fb9feeab43db902e1-removebg-preview.png"
+            <img class="logo"
+                src="asset/19eff9b8125bb9fa4eae986fb9feeab43db902e1-removebg-preview.png"
                 alt="TUgether Logo">
+
             <div class="brand-text">
                 <h1>TUgether</h1>
                 <h2>Building Community Together</h2>
             </div>
         </div>
+
         <p class="tagline">Connect with the TU community</p>
-        
-		<label for="studentIdInput">Student ID</label>
-		<input type="text" id="studentIdInput" placeholder="Enter your student ID" autocomplete="username">
-        
+
+        <label for="studentIdInput">Student ID</label>
+        <input type="text" id="studentIdInput" placeholder="Enter your student ID" autocomplete="username">
+
         <label for="passwordInput">Password</label>
         <input type="password" id="passwordInput" placeholder="Enter your password" autocomplete="current-password">
-        
+
         <button id="submitButton">Login to TUgether</button>
-        
+
         <small>Use your TU student ID to login</small>
     </div>
 
-    <script>
-        document.getElementById('submitButton').addEventListener('click', function (e) {
-            e.preventDefault();
-            
-            var studentId = document.getElementById('studentIdInput').value.trim();
-            var password = document.getElementById('passwordInput').value.trim();
-            
-            // Validation
-			if (!studentId || !password) {
-				alert('กรุณากรอก Student ID และรหัสผ่าน');
-			    return;
-			}
 
-			if (!/^\d+$/.test(studentId)) { // ตรวจว่าเป็นตัวเลขทั้งหมด
-			    alert('กรุณากรอก Student ID ให้ถูกต้อง (ตัวเลขเท่านั้น)');
-			    return;
-			}
-         
-			localStorage.setItem('studentId', studentId);
-            
-            // Redirect ไปหน้า home
-            window.location.href = 'home.html';
+    <!-- ================================
+         Login Script
+    ================================= -->
+    <script>
+        document.getElementById('submitButton').addEventListener('click', async function (e) {
+            e.preventDefault();
+
+            const studentId = document.getElementById('studentIdInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+
+            if (!studentId || !password) {
+                alert('กรุณากรอก Student ID และรหัสผ่าน');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8081/api/auth/tu-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: studentId, password: password })
+                });
+
+                const result = await response.json();
+
+                if (result.status) {
+                    // Login สำเร็จ
+                    localStorage.setItem('studentId', studentId);
+                    window.location.href = 'home.html';
+                } else {
+                    alert('❌ Login ไม่สำเร็จ: ' + result.message);
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert('⚠️ เกิดข้อผิดพลาดในการ login');
+            }
         });
-        
-        // Enter key support
-        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+
+        // รองรับกด Enter เพื่อ login
+        document.getElementById('passwordInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 document.getElementById('submitButton').click();
             }
         });
     </script>
-</body>
 
+</body>
 </html>

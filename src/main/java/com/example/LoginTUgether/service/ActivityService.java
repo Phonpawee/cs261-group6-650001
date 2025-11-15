@@ -10,6 +10,8 @@ import com.example.LoginTUgether.repo.ActivityRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import java.util.Optional;
+
 @Service
 public class ActivityService {
 

@@ -3,9 +3,13 @@ package com.example.LoginTUgether.controller;
 import com.example.LoginTUgether.model.Event;
 import com.example.LoginTUgether.model.Registration;
 import com.example.LoginTUgether.model.User;
+
 import com.example.LoginTUgether.repo.EventRepository;
 import com.example.LoginTUgether.repo.RegistrationRepository;
 import com.example.LoginTUgether.repo.UserRepository;
+
+import com.example.LoginTUgether.service.RegistrationService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +22,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/registrations")
 @CrossOrigin(origins = "*")
+
 public class RegistrationController {
     
     @Autowired
@@ -171,4 +176,15 @@ public class RegistrationController {
         
         return ResponseEntity.ok(response);
     }
+    
+    //ดึงรายชื่อ
+    @Autowired
+    private RegistrationService registrationService;
+
+    @GetMapping("/event/{eventId}")
+    public ResponseEntity<List<Registration>> getRegistrationsByEvent(@PathVariable Long eventId) {
+        return ResponseEntity.ok(registrationService.getRegistrationsByEventId(eventId));
+    }
+
+    
 }

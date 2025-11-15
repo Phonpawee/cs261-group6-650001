@@ -3,6 +3,7 @@ package com.example.LoginTUgether.repo;
 import com.example.LoginTUgether.model.Registration;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +17,6 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     Optional<Registration> findByUserIdAndEventId(Long userId, Long eventId);
     
     Long countByEventIdAndStatus(Long eventId, String status);
+    
+    
 }

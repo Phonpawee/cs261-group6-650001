@@ -20,36 +20,36 @@
         </div>
         <p class="tagline">Connect with the TU community</p>
         
-        <label for="emailInput">Email</label>
-        <input type="email" id="emailInput" placeholder="your.name@dome.tu.ac.th" autocomplete="email">
+		<label for="studentIdInput">Student ID</label>
+		<input type="text" id="studentIdInput" placeholder="Enter your student ID" autocomplete="username">
         
         <label for="passwordInput">Password</label>
         <input type="password" id="passwordInput" placeholder="Enter your password" autocomplete="current-password">
         
         <button id="submitButton">Login to TUgether</button>
         
-        <small>Only @dome.tu.ac.th emails are accepted</small>
+        <small>Use your TU student ID to login</small>
     </div>
 
     <script>
         document.getElementById('submitButton').addEventListener('click', function (e) {
             e.preventDefault();
             
-            var email = document.getElementById('emailInput').value.trim();
+            var studentId = document.getElementById('studentIdInput').value.trim();
             var password = document.getElementById('passwordInput').value.trim();
             
             // Validation
-            if (!email || !password) {
-                alert('กรุณากรอกอีเมลและรหัสผ่าน');
-                return;
-            }
-            
-            if (!email.endsWith('@dome.tu.ac.th')) {
-                alert('กรุณากรอกอีเมล @dome.tu.ac.th');
-                return;
-            }
+			if (!studentId || !password) {
+				alert('กรุณากรอก Student ID และรหัสผ่าน');
+			    return;
+			}
+
+			if (!/^\d+$/.test(studentId)) { // ตรวจว่าเป็นตัวเลขทั้งหมด
+			    alert('กรุณากรอก Student ID ให้ถูกต้อง (ตัวเลขเท่านั้น)');
+			    return;
+			}
          
-            localStorage.setItem('userEmail', email);
+			localStorage.setItem('studentId', studentId);
             
             // Redirect ไปหน้า home
             window.location.href = 'home.html';

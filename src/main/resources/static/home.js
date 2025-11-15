@@ -7,22 +7,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const EVENTS_API = `${API_BASE_URL}/events`;
   const REGISTRATIONS_API = `${API_BASE_URL}/registrations`;
   
-  // 🔑 ตรวจสอบว่ามีการ Login หรือยัง
-  const userEmail = localStorage.getItem('userEmail');
+  // 🔑 ตรวจสอบว่ามีการ Login หรือยัง (ใช้ studentId)
+  const studentId = localStorage.getItem('studentId');
   
   // ถ้ายังไม่ได้ login ให้ redirect กลับไปหน้า login
-  if (!userEmail) {
+  if (!studentId) {
     alert('กรุณา Login ก่อนใช้งาน');
     window.location.href = 'index.html';
-    // Stop execution
     throw new Error('Not logged in');
   }
   
-  // 🔑 User ID (ในระบบจริงควรได้จาก JWT/Session)
-  // ⚠️ สำคัญ: เปลี่ยน ID นี้ให้ตรงกับ User ที่มีอยู่จริงในฐานข้อมูล
-  // รัน SQL: SELECT id FROM users; เพื่อดู id ที่มี
-  const CURRENT_USER_ID = 1; // ⬅️ เปลี่ยนตรงนี้ถ้าฐานข้อมูลไม่มี user id=1
-  const CURRENT_USER_EMAIL = userEmail; // ✅ ใช้ email จาก localStorage
+  // 🔑 User ID (ในระบบจริงควรได้จาก API/JWT)
+  const CURRENT_USER_ID = 1; // ⬅️ ปรับตามฐานข้อมูลของคุณ
+  const CURRENT_USER_STUDENT_ID = studentId; // ใช้ studentId จาก localStorage
 
   // DOM Elements
   const allEventsListContainer = document.getElementById('allEventsList');
@@ -38,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let registeredEventIds = new Set();
 
   // Set user email
-  document.getElementById('userEmail').textContent = CURRENT_USER_EMAIL;
+  document.getElementById('userEmail').textContent = CURRENT_USER_STUDENT_ID;
+
 
   // ==========================================
   // 🔄 Tab Navigation
@@ -490,13 +488,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // 🚪 Logout
   // ==========================================
-  const logoutBtn = document.querySelector('.logout');
+   const logoutBtn = document.querySelector('.logout');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-        // ✅ ลบข้อมูล login
-        localStorage.removeItem('userEmail');
-        // Redirect ไปหน้า login
+        localStorage.removeItem('studentId');
         window.location.href = 'index.html';
       }
     });

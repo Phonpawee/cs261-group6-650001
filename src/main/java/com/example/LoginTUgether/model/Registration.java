@@ -22,6 +22,9 @@ public class Registration {
     @Column(nullable = false)
     private String status = "REGISTERED";
 
+    @Column(length = 500)
+    private String note;
+
     @Column(nullable = false)
     private LocalDateTime registeredAt = LocalDateTime.now();
 
@@ -55,6 +58,14 @@ public class Registration {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public LocalDateTime getRegisteredAt() {

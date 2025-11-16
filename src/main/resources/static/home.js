@@ -23,12 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(`${API_BASE_URL}/profile/std-info?id=${studentId}`);
       const profile = await res.json();
 
-      document.getElementById('userEmail').textContent =
-        profile.email || profile.displayname_en || profile.displayname_th || studentId;
+	  document.getElementById('userEmail').textContent =
+	    profile.data?.email ||
+	    profile.data?.displayname_en ||
+	    profile.data?.displayname_th ||
+	    studentId;
+
 
     } catch (err) {
       console.error(err);
-      document.getElementById('userEmail').textContent = studentId;
     }
   }
 
@@ -50,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentEventId = null;
   let registeredEventIds = new Set();
 
-  document.getElementById('userEmail').textContent = studentId;
 
   // ==========================================
   // 🔄 Tab Navigation

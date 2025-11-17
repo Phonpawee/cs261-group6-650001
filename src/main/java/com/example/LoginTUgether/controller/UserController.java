@@ -1,89 +1,78 @@
 package com.example.LoginTUgether.controller;
 
+import com.example.LoginTUgether.model.User;
+import com.example.LoginTUgether.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.LoginTUgether.model.User;
-import com.example.LoginTUgether.repo.UserRepository;
-
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*") 
+@CrossOrigin(origins = "*")
 public class UserController {
 
     @Autowired
     private UserRepository userRepository;
 
-    @PostMapping("/findOrCreate")
-    public ResponseEntity<Map<String, Object>> findOrCreateUser(@RequestBody Map<String, String> userData) {
-        
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            String email = userData.get("email");
-            String name = userData.get("name");
-            String studentId = userData.get("studentId");
-            
-            if (email == null || email.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "Email is required");
-                return ResponseEntity.badRequest().body(response);
-            }
-            
-            Optional<User> existingUser = userRepository.findByEmail(email);
-            
-            User user;
-            if (existingUser.isPresent()) {
-                user = existingUser.get();
-                response.put("isNew", false);
-            } else {
-                user = new User();
-                user.setEmail(email);
-                user.setName(name);
-                user.setCitizenId(studentId); 
-                user = userRepository.save(user);
-                response.put("isNew", true);
-            }
-            
-            response.put("success", true);
-            response.put("userId", user.getId());
-            response.put("email", user.getEmail());
-            response.put("name", user.getName());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Error: " + e.getMessage());
-            return ResponseEntity.status(500).body(response);
-        }
+    /**
+     * List all users (for debug / admin).
+     */
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
-        
-        Map<String, Object> response = new HashMap<>();
-        
-        String email = request.get("email");
-        String citizenId = request.get("citizenId");
-        
-        Optional<User> user = userRepository.findByEmailAndCitizenId(email, citizenId);
-        
-        if (user.isPresent()) {
-            response.put("success", true);
-            response.put("message", "Login success");
-            response.put("userId", user.get().getId());
-            response.put("email", user.get().getEmail());
-            response.put("name", user.get().getName());
-            return ResponseEntity.ok(response);
-        } else {
-            response.put("success", false);
-            response.put("message", "Invalid credentials");
-            return ResponseEntity.status(401).body(response);
+
+    /**
+     * Get user by id.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUser(@PathVariable Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        return userOpt.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Get user by student id.
+     */
+    @GetMapping("/by-student/{studentId}")
+    public ResponseEntity<User> getByStudentId(@PathVariable String studentId) {
+        Optional<User> userOpt = userRepository.findByStudentId(studentId);
+        return userOpt.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Update role (ADMIN / STUDENT).
+     * Body: { "role": "ADMIN" }
+     */
+    @PutMapping("/{id}/role")
+    public ResponseEntity<?> updateRole(@PathVariable Long id,
+                                        @RequestBody Map<String, String> body) {
+
+        String role = body.get("role");
+        if (role == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "role is required"));
         }
+
+        role = role.toUpperCase();
+        if (!role.equals("ADMIN") && !role.equals("STUDENT")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "role must be ADMIN or STUDENT"));
+        }
+
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+        user.setRole(role);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(user);
     }
 }

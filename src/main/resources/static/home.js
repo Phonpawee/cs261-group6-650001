@@ -614,6 +614,125 @@ async function handleCancelEvent(eventId) {
       });
     }
 
-    loadAllEvents();
+	// ==========================================
+	  // 🔔 Notifications
+	  // ==========================================
+	  function formatDateTime(dt) {
+	    if (!dt) return '';
+	    const d = new Date(dt);
+	    return d.toLocaleString('th-TH', {
+	      year: 'numeric',
+	      month: 'short',
+	      day: 'numeric',
+	      hour: '2-digit',
+	      minute: '2-digit'
+	    });
+	  }
 
-  });
+	  function escapeHtml(text) {
+	    if (!text) return '';
+	    return text
+	      .replace(/&/g, '&amp;')
+	      .replace(/</g, '&lt;')
+	      .replace(/>/g, '&gt;');
+	  }
+
+	  async function loadNotifications() {
+	    if (!notiList || !notiBadge) return;
+
+	    notiList.innerHTML = `<p class="noti-empty">กำลังโหลดการแจ้งเตือน...</p>`;
+
+	    try {
+	      const res = await fetch(`${NOTIFICATIONS_API}?userId=${encodeURIComponent(studentId)}`);
+	      if (!res.ok) throw new Error('Failed to load notifications');
+	      const notifications = await res.json();
+
+	      if (!notifications || notifications.length === 0) {
+	        notiList.innerHTML = `<p class="noti-empty">ไม่มีการแจ้งเตือน</p>`;
+	        notiBadge.classList.add('hidden');
+	        return;
+	      }
+
+	      const unread = notifications.filter(n => !n.read).length;
+	      if (unread > 0) {
+	        notiBadge.textContent = unread;
+	        notiBadge.classList.remove('hidden');
+	      } else {
+	        notiBadge.classList.add('hidden');
+	      }
+
+	      notiList.innerHTML = notifications
+	        .map(n => renderNotificationItem(n))
+	        .join('');
+
+	    } catch (err) {
+	      console.error('Error loading notifications:', err);
+	      notiList.innerHTML = `<p class="noti-empty">โหลดการแจ้งเตือนไม่สำเร็จ</p>`;
+	    }
+	  }
+
+	  function renderNotificationItem(n) {
+	    const typeClass = n.type ? n.type.toLowerCase() : 'info';
+	    const created = formatDateTime(n.createdAt);
+
+	    return `
+	      <div class="noti-item ${n.read ? 'read' : 'unread'}" data-id="${n.id}">
+	        <div class="noti-title">${escapeHtml(n.title)}</div>
+	        <div class="noti-message">${escapeHtml(n.message)}</div>
+	        <div class="noti-meta">
+	          <span class="noti-type ${typeClass}">${n.type}</span>
+	          <span>${created}</span>
+	        </div>
+	      </div>
+	    `;
+	  }
+
+	  async function markNotificationRead(id) {
+	    try {
+	      await fetch(`${NOTIFICATIONS_API}/${id}/read`, {
+	        method: 'PATCH',
+	        headers: { 'Content-Type': 'application/json' },
+	        body: JSON.stringify({})
+	      });
+	      loadNotifications();
+	    } catch (err) {
+	      console.error('Error mark read:', err);
+	    }
+	  }
+
+	  if (notiBell && notiDropdown) {
+	    notiBell.addEventListener('click', (e) => {
+	      e.stopPropagation();
+	      notiDropdown.classList.toggle('hidden');
+	      if (!notiDropdown.classList.contains('hidden')) {
+	        loadNotifications();
+	      }
+	    });
+	  }
+
+	  if (notiList) {
+	    notiList.addEventListener('click', (e) => {
+	      const item = e.target.closest('.noti-item');
+	      if (!item) return;
+	      const id = item.getAttribute('data-id');
+	      if (id) {
+	        markNotificationRead(id);
+	      }
+	    });
+	  }
+
+	  document.addEventListener('click', (e) => {
+	    if (notiDropdown && !notiDropdown.classList.contains('hidden')) {
+	      if (!notiDropdown.contains(e.target) && !notiBell.contains(e.target)) {
+	        notiDropdown.classList.add('hidden');
+	      }
+	    }
+	  });
+
+	  // ==========================================
+	  // 🚀 Initial Load
+	  // ==========================================
+	  loadAllEvents();
+	  loadNotifications();
+
+	});

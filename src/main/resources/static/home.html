@@ -16,6 +16,25 @@
         <h1>TUgether</h1>
       </div>
       <div class="user-info">
+		
+		<!-- 🔔 Notification UI -->
+		        <div class="notifications">
+		          <button id="notiBell" class="noti-bell">
+		            🔔
+		            <span id="notiBadge" class="noti-badge hidden">0</span>
+		          </button>
+
+		          <div id="notiDropdown" class="noti-dropdown hidden">
+		            <div class="noti-dropdown-header">
+		              <span>การแจ้งเตือน</span>
+		            </div>
+		            <div id="notiList" class="noti-list">
+		              <p class="noti-empty">กำลังโหลดการแจ้งเตือน...</p>
+		            </div>
+		          </div>
+		        </div>
+		<!-- จบ Notification UI -->
+		
         <span id="userEmail">Loading...</span>
         <button class="logout">Logout</button>
       </div>

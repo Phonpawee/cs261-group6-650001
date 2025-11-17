@@ -286,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
       myEventsListContainer.innerHTML = '<p class="error-message">⚠️ ไม่สามารถโหลดกิจกรรมของคุณได้</p>';
     }
   }
+  
 
     function createEventCard(event, type, registration = null) {
   const card = document.createElement('div');
@@ -392,6 +393,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   return card;
+}
+async function handleCancelEvent(eventId) {
+  const confirmCancel = confirm("คุณต้องการยกเลิกกิจกรรมนี้จริงหรือไม่?");
+  if (!confirmCancel) return;
+
+  try {
+    const response = await fetch(`${EVENTS_API}/cancel/${eventId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      alert("✅ ยกเลิกกิจกรรมสำเร็จ!");
+
+      await loadAllEvents();
+      await loadMyEvents();
+
+    } else {
+      alert("❌ ไม่สามารถยกเลิกกิจกรรมได้: " + result.message);
+    }
+
+  } catch (error) {
+    console.error("Error cancelling event:", error);
+    alert("⚠️ เกิดข้อผิดพลาดในการยกเลิกกิจกรรม");
+  }
 }
   function showEventDetails(event) {
     const actualStatus = getEventStatus(event);

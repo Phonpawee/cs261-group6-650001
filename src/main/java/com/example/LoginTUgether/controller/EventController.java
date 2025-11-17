@@ -1,13 +1,18 @@
 package com.example.LoginTUgether.controller;
 
 import com.example.LoginTUgether.model.Event;
+import com.example.LoginTUgether.model.User;
 import com.example.LoginTUgether.repo.EventRepository;
+import com.example.LoginTUgether.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/events")
@@ -16,6 +21,9 @@ public class EventController {
 
     @Autowired
     private EventRepository eventRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<Event>> getAllEvents() {
@@ -68,11 +76,52 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<Event> createEvent(@RequestBody Event event) {
-        event.setOrganizer(null);
-
-        Event savedEvent = eventRepository.save(event);
-        return ResponseEntity.ok(savedEvent);
+    public ResponseEntity<?> createEvent(@RequestBody Map<String, Object> requestBody) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Long userId = requestBody.get("userId") != null 
+                ? Long.parseLong(requestBody.get("userId").toString()) 
+                : null;
+            
+            if (userId == null) {
+                response.put("success", false);
+                response.put("message", "กรุณาระบุผู้สร้างกิจกรรม");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (!userOpt.isPresent()) {
+                response.put("success", false);
+                response.put("message", "ไม่พบผู้ใช้งาน");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            Event event = new Event();
+            event.setName(requestBody.get("name").toString());
+            event.setCategory(requestBody.get("category").toString());
+            event.setDescription(requestBody.get("description").toString());
+            event.setEventDate(LocalDateTime.parse(requestBody.get("eventDate").toString()));
+            event.setMaxParticipants(Integer.parseInt(requestBody.get("maxParticipants").toString()));
+            event.setCurrentParticipants(0);
+            event.setStatus("OPEN");
+            
+            event.setOrganizer(userOpt.get());
+            
+            Event savedEvent = eventRepository.save(event);
+            
+            response.put("success", true);
+            response.put("message", "สร้างกิจกรรมสำเร็จ");
+            response.put("event", savedEvent);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "เกิดข้อผิดพลาด: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
     }
 
     @GetMapping("/my-events/{userId}")

@@ -1,4 +1,4 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 
 <head>
@@ -37,9 +37,6 @@
     </div>
 
 
-    <!-- ================================
-         Login Script
-    ================================= -->
     <script>
         document.getElementById('submitButton').addEventListener('click', async function (e) {
             e.preventDefault();
@@ -53,29 +50,61 @@
             }
 
             try {
-                const response = await fetch('http://localhost:8081/api/auth/tu-login', {
+                const tuLoginResponse = await fetch('http://localhost:8081/api/auth/tu-login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json; charset=UTF-8' },
                     body: JSON.stringify({ username: studentId, password: password })
                 });
 
-                const result = await response.json();
+                const tuResult = await tuLoginResponse.json();
 
-                if (result.status) {
-                    // Login สำเร็จ
-                    localStorage.setItem('studentId', studentId);
-                    window.location.href = 'home.html';
+                if (tuResult.status) {
+                    console.log('✅ TU Login สำเร็จ');
+
+                    const profileResponse = await fetch(`http://localhost:8081/api/profile/std-info?id=${studentId}`);
+                    const profileData = await profileResponse.json();
+
+                    const email = profileData.data?.email || `${studentId}@dome.tu.ac.th`;
+                    const name = profileData.data?.displayname_th || profileData.data?.displayname_en || studentId;
+
+                    console.log('📧 Email:', email);
+                    console.log('👤 Name:', name);
+
+                    const userResponse = await fetch('http://localhost:8081/api/users/findOrCreate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+                        body: JSON.stringify({
+                            email: email,
+                            name: name,
+                            studentId: studentId
+                        })
+                    });
+
+                    const userData = await userResponse.json();
+
+                    if (userData.success) {
+                        localStorage.setItem('studentId', studentId);
+                        localStorage.setItem('userEmail', userData.email);
+                        localStorage.setItem('userName', userData.name);
+
+                        console.log('✅ เก็บ userId:', userData.userId);
+
+                        alert('✅ Login สำเร็จ!');
+                        window.location.href = 'home.html';
+                    } else {
+                        alert('❌ ไม่สามารถสร้าง User ได้: ' + userData.message);
+                    }
+
                 } else {
-                    alert('❌ Login ไม่สำเร็จ: ' + result.message);
+                    alert('❌ Login ไม่สำเร็จ: ' + tuResult.message);
                 }
 
             } catch (error) {
-                console.error(error);
+                console.error('Error:', error);
                 alert('⚠️ เกิดข้อผิดพลาดในการ login');
             }
         });
 
-        // รองรับกด Enter เพื่อ login
         document.getElementById('passwordInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 document.getElementById('submitButton').click();

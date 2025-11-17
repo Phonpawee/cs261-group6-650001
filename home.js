@@ -1,211 +1,476 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* ---------- Logout Modal ---------- */
-  const logoutBtn = document.querySelector('.logout');
-  const logoutModal = document.getElementById('logoutModal');
-  const closeLogout = document.querySelector('#logoutModal .close');
-  const cancelLogout = document.getElementById('cancelLogout');
-  const confirmLogout = document.getElementById('confirmLogout');
+  // ==========================================
+  // CONFIG
+  // ==========================================
+  const API_BASE_URL = 'http://localhost:8081/api';
+  const EVENTS_API = `${API_BASE_URL}/events`;
+  const REGISTRATIONS_API = `${API_BASE_URL}/registrations`;
 
-  if (logoutBtn && logoutModal) {
-    logoutBtn.addEventListener('click', () => logoutModal.style.display = 'flex');
-    closeLogout?.addEventListener('click', () => logoutModal.style.display = 'none');
-    cancelLogout?.addEventListener('click', () => logoutModal.style.display = 'none');
-    confirmLogout?.addEventListener('click', () => window.location.href = 'index.html');
-
-    window.addEventListener('click', e => {
-      if (e.target === logoutModal) logoutModal.style.display = 'none';
-    });
+  // เช็ค login
+  const studentId = localStorage.getItem('studentId');
+  if (!studentId) {
+    alert('กรุณา Login ก่อนใช้งาน');
+    window.location.href = 'index.html';
+    return;
   }
 
-  /* ---------- Event Detail Modal ---------- */
+  // ==========================================
+  // โหลดโปรไฟล์
+  // ==========================================
+  async function loadProfile() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/profile/std-info?id=${studentId}`);
+      const profile = await res.json();
+
+	  document.getElementById('userEmail').textContent =
+	    profile.data?.email ||
+	    profile.data?.displayname_en ||
+	    profile.data?.displayname_th ||
+	    studentId;
+
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  loadProfile();
+
+  const CURRENT_USER_ID = parseInt(localStorage.getItem('userId')) || 1;
+  console.log('🆔 Current User ID:', CURRENT_USER_ID);
+
+  const allEventsListContainer = document.getElementById('allEventsList');
+  const myRegistrationsListContainer = document.getElementById('myRegistrationsList');
+  const myEventsListContainer = document.getElementById('myEventsList');
+
   const eventModal = document.getElementById('eventDetailModal');
-  const closeEventModal = document.querySelector('#eventDetailModal .close');
-  const cancelEventModal = document.getElementById('closeEventModal');
-  const registerEventBtn = document.getElementById('registerEvent');
+  const closeModal = document.querySelector('.close');
+  const modalRegisterBtn = document.getElementById('modalRegisterBtn');
+  const modalCancelBtn = document.getElementById('modalCancelBtn');
 
-  const registerBtns = document.querySelectorAll('.register-btn');
-  registerBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      eventModal.style.display = 'flex';
-    });
-  });
+  let currentEventId = null;
+  let registeredEventIds = new Set();
 
-  [closeEventModal, cancelEventModal].forEach(el => {
-    el?.addEventListener('click', () => eventModal.style.display = 'none');
-  });
 
-  window.addEventListener('click', e => {
-    if (e.target === eventModal) eventModal.style.display = 'none';
-  });
-
-  registerEventBtn?.addEventListener('click', () => {
-    alert('✅ คุณได้ลงทะเบียนกิจกรรมนี้แล้ว!');
-    eventModal.style.display = 'none';
-  });
-
-  /* ---------- Tabs Navigation ---------- */
   const tabs = document.querySelectorAll('.tab');
   const contents = document.querySelectorAll('.tab-content');
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      // ปุ่ม active
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
 
-      // ซ่อนทุก section
       contents.forEach(c => c.classList.remove('active'));
 
-      // แสดง section ที่เลือก
-      const target = document.getElementById(tab.dataset.target);
+      const targetId = tab.dataset.target;
+      const target = document.getElementById(targetId);
       target.classList.add('active');
+      
+      if (targetId === 'all-events') {
+        loadAllEvents();
+      } else if (targetId === 'my-registrations') {
+        loadMyRegistrations();
+      } else if (targetId === 'my-events') {
+        loadMyEvents();
+      }
     });
   });
-  
-  /* ---------- API & Event Search ---------- */
-const API_URL = 'http://localhost:8081/api/events';
 
-async function searchEvents() {
-  const keyword = document.getElementById('searchInput').value.trim();
-  const category = document.getElementById('categoryFilter').value;
-  const dateFilter = document.getElementById('dateFilter').value;
-  
-  let url = `${API_URL}/advanced-search?`;
-  
-  if (keyword) url += `keyword=${encodeURIComponent(keyword)}&`;
-  if (category) url += `category=${encodeURIComponent(category)}&`;
-  
-  if (dateFilter) {
-    const { startDate, endDate } = getDateRange(dateFilter);
-    if (startDate) url += `startDate=${startDate}&`;
-    if (endDate) url += `endDate=${endDate}&`;
-  }
-  
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('ไม่สามารถค้นหากิจกรรมได้');
+  async function loadAllEvents() {
+    if (!allEventsListContainer) return;
     
-    const events = await response.json();
-    displayEvents(events);
-  } catch (error) {
-    console.error('Error:', error);
-    displayError('เกิดข้อผิดพลาดในการค้นหา กรุณาลองใหม่อีกครั้ง');
-  }
-}
+    allEventsListContainer.innerHTML = '<p class="loading-message">กำลังโหลดกิจกรรม...</p>';
 
-function getDateRange(filter) {
-  const now = new Date();
-  let startDate = null;
-  let endDate = null;
-  
-  switch(filter) {
-    case 'today':
-      startDate = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-      endDate = new Date(now.setHours(23, 59, 59, 999)).toISOString();
-      break;
-      
-    case 'this-week':
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay());
-      startOfWeek.setHours(0, 0, 0, 0);
-      
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
-      
-      startDate = startOfWeek.toISOString();
-      endDate = endOfWeek.toISOString();
-      break;
-      
-    case 'next-week':
-      const nextWeekStart = new Date(now);
-      nextWeekStart.setDate(now.getDate() + (7 - now.getDay()));
-      nextWeekStart.setHours(0, 0, 0, 0);
-      
-      const nextWeekEnd = new Date(nextWeekStart);
-      nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
-      nextWeekEnd.setHours(23, 59, 59, 999);
-      
-      startDate = nextWeekStart.toISOString();
-      endDate = nextWeekEnd.toISOString();
-      break;
-  }
-  
-  return { startDate, endDate };
-}
+    try {
+      const eventsResponse = await fetch(EVENTS_API);
+      if (!eventsResponse.ok) throw new Error('Failed to fetch events');
+      const events = await eventsResponse.json();
 
-function displayEvents(events) {
-  const eventList = document.querySelector('.event-list');
-  
-  if (!events || events.length === 0) {
-    eventList.innerHTML = '<div class="no-events"><p>ไม่พบกิจกรรม</p></div>';
-    return;
+      await updateRegisteredEvents();
+
+      const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+      const category = document.getElementById('categoryFilter')?.value || 'all';
+      const dateRange = document.getElementById('dateFilter')?.value || 'all';
+
+      let filteredEvents = events.filter(event => {
+        if (event.status !== 'OPEN') return false;
+
+        if (searchTerm && !event.name.toLowerCase().includes(searchTerm) && 
+            !event.description?.toLowerCase().includes(searchTerm)) {
+          return false;
+        }
+
+        if (category !== 'all' && event.category !== category) {
+          return false;
+        }
+
+        if (dateRange !== 'all') {
+          const eventDate = new Date(event.eventDate);
+          const now = new Date();
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+          if (dateRange === 'today') {
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            if (eventDate < today || eventDate >= tomorrow) return false;
+          } else if (dateRange === 'this-week') {
+            const weekEnd = new Date(today);
+            weekEnd.setDate(weekEnd.getDate() + 7);
+            if (eventDate < today || eventDate >= weekEnd) return false;
+          } else if (dateRange === 'next-week') {
+            const nextWeekStart = new Date(today);
+            nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+            const nextWeekEnd = new Date(nextWeekStart);
+            nextWeekEnd.setDate(nextWeekEnd.getDate() + 7);
+            if (eventDate < nextWeekStart || eventDate >= nextWeekEnd) return false;
+          }
+        }
+
+        return true;
+      });
+
+      allEventsListContainer.innerHTML = '';
+
+      if (filteredEvents.length === 0) {
+        allEventsListContainer.innerHTML = '<p class="no-events">⚠️ ไม่พบกิจกรรมที่ตรงกับเงื่อนไข</p>';
+        return;
+      }
+
+      filteredEvents.forEach(event => {
+        const card = createEventCard(event, 'all');
+        allEventsListContainer.appendChild(card);
+      });
+
+    } catch (error) {
+      console.error('Error loading events:', error);
+      allEventsListContainer.innerHTML = '<p class="error-message">⚠️ ไม่สามารถโหลดกิจกรรมได้ กรุณาลองใหม่อีกครั้ง</p>';
+    }
   }
-  
-  eventList.innerHTML = events.map(event => {
-    const seatsAvailable = event.maxParticipants - event.currentParticipants;
-    const eventDate = new Date(event.eventDate);
-    const formattedDate = eventDate.toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    const formattedTime = eventDate.toLocaleTimeString('th-TH', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+
+  async function loadMyRegistrations() {
+    if (!myRegistrationsListContainer) return;
     
-    return `
-      <div class="event-card">
-        <h4>${event.name}</h4>
-        <div class="category">${event.category}</div>
-        <div class="event-details">
-          <p>Date: ${formattedDate} at ${formattedTime}</p>
-          <p>${event.currentParticipants}/${event.maxParticipants} registered</p>
-          <p>${event.description || 'ไม่มีคำอธิบาย'}</p>
-          <hr />
-        </div>
-        <div class="event-action-row">
-          <p class="seat"><strong>${seatsAvailable} seats available</strong></p>
-          <button class="register-btn"><strong>Register</strong></button>
-        </div>
+    myRegistrationsListContainer.innerHTML = '<p class="loading-message">กำลังโหลดรายการลงทะเบียน...</p>';
+
+    try {
+      const response = await fetch(`${REGISTRATIONS_API}/my-registrations/${CURRENT_USER_ID}`);
+      if (!response.ok) throw new Error('Failed to fetch registrations');
+      
+      const registrations = await response.json();
+      
+      myRegistrationsListContainer.innerHTML = '';
+
+      if (registrations.length === 0) {
+        myRegistrationsListContainer.innerHTML = '<p class="no-events">ยังไม่มีการลงทะเบียนกิจกรรม</p>';
+        return;
+      }
+
+      registrations.forEach(registration => {
+        const card = createEventCard(registration.event, 'registration', registration);
+        myRegistrationsListContainer.appendChild(card);
+      });
+
+    } catch (error) {
+      console.error('Error loading registrations:', error);
+      myRegistrationsListContainer.innerHTML = '<p class="error-message">⚠️ ไม่สามารถโหลดรายการลงทะเบียนได้</p>';
+    }
+  }
+
+  async function loadMyEvents() {
+    if (!myEventsListContainer) return;
+    
+    myEventsListContainer.innerHTML = '<p class="loading-message">กำลังโหลดกิจกรรมของคุณ...</p>';
+
+    try {
+      const response = await fetch(`${EVENTS_API}/my-events/${CURRENT_USER_ID}`);
+      if (!response.ok) throw new Error('Failed to fetch my events');
+      
+      const events = await response.json();
+      
+      myEventsListContainer.innerHTML = '';
+
+      if (events.length === 0) {
+        myEventsListContainer.innerHTML = '<p class="no-events">คุณยังไม่ได้สร้างกิจกรรมใด ๆ</p>';
+        return;
+      }
+
+      events.forEach(event => {
+        const card = createEventCard(event, 'my-event');
+        myEventsListContainer.appendChild(card);
+      });
+
+    } catch (error) {
+      console.error('Error loading my events:', error);
+      myEventsListContainer.innerHTML = '<p class="error-message">⚠️ ไม่สามารถโหลดกิจกรรมของคุณได้</p>';
+    }
+  }
+
+  function createEventCard(event, type, registration = null) {
+    const card = document.createElement('div');
+    card.className = 'event-card';
+
+    const isRegistered = registeredEventIds.has(event.id);
+    const isFull = event.currentParticipants >= event.maxParticipants;
+    const seatsLeft = event.maxParticipants - event.currentParticipants;
+
+    let statusBadge = '';
+    if (type === 'registration') {
+      statusBadge = `<span class="status-badge registered">ลงทะเบียนแล้ว</span>`;
+    } else if (event.status === 'FULL' || isFull) {
+      statusBadge = `<span class="status-badge full">เต็มแล้ว</span>`;
+    } else if (event.status === 'OPEN') {
+      statusBadge = `<span class="status-badge open">เปิดรับสมัคร</span>`;
+    } else if (event.status === 'CANCELLED') {
+      statusBadge = `<span class="status-badge cancelled">ยกเลิก</span>`;
+    } else {
+      statusBadge = `<span class="status-badge closed">ปิดรับสมัคร</span>`;
+    }
+
+    let actionButtons = '';
+    if (type === 'all') {
+      if (isRegistered) {
+        actionButtons = `
+          <button class="btn-view-details">ดูรายละเอียด</button>
+          <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
+        `;
+      } else if (!isFull && event.status === 'OPEN') {
+        actionButtons = `
+          <button class="btn-view-details">ดูรายละเอียด</button>
+          <button class="btn-register">ลงทะเบียน</button>
+        `;
+      } else {
+        actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
+      }
+    } else if (type === 'registration') {
+      actionButtons = `
+        <button class="btn-view-details">ดูรายละเอียด</button>
+        <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
+      `;
+    } else if (type === 'my-event') {
+      actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
+    }
+
+    card.innerHTML = `
+      <h4>${event.name}</h4>
+      <span class="category">${event.category}</span>
+      ${statusBadge}
+      <div class="event-details">
+        <p><strong>📅 วันที่:</strong> ${new Date(event.eventDate).toLocaleString('th-TH')}</p>
+        <p><strong>👥 ผู้เข้าร่วม:</strong> ${event.currentParticipants}/${event.maxParticipants}</p>
+        ${!isFull && type === 'all' ? `<p class="seats-left">🎫 เหลือที่นั่ง ${seatsLeft} ที่</p>` : ''}
+        <p class="description">${event.description || 'ไม่มีรายละเอียด'}</p>
+      </div>
+      <div class="event-action-row">
+        ${actionButtons}
       </div>
     `;
-  }).join('');
-  
-  document.querySelectorAll('.register-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      eventModal.style.display = 'flex';
-    });
-  });
-}
 
-function displayError(message) {
-  const eventList = document.querySelector('.event-list');
-  eventList.innerHTML = `<div class="error-message"><p>${message}</p></div>`;
-}
+    const viewBtn = card.querySelector('.btn-view-details');
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => showEventDetails(event));
+    }
 
-async function loadAllEvents() {
-  try {
-    const response = await fetch(`${API_URL}`);
-    const events = await response.json();
-    displayEvents(events);
-  } catch (error) {
-    console.error('Error loading events:', error);
-    displayError('ไม่สามารถโหลดกิจกรรมได้');
+    const registerBtn = card.querySelector('.btn-register');
+    if (registerBtn && !registerBtn.disabled) {
+      registerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleRegister(event.id);
+      });
+    }
+
+    const cancelBtn = card.querySelector('.btn-cancel-registration');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleCancelRegistration(event.id);
+      });
+    }
+
+    return card;
   }
-}
 
-loadAllEvents(); 
+  function showEventDetails(event) {
+    document.getElementById('modalEventName').textContent = event.name;
+    document.getElementById('modalCategory').textContent = event.category;
+    document.getElementById('modalDate').textContent = new Date(event.eventDate).toLocaleString('th-TH');
+    document.getElementById('modalOrganizer').textContent = event.organizer?.name || event.organizer?.email || 'Unknown';
+    document.getElementById('modalCapacity').textContent = `${event.currentParticipants}/${event.maxParticipants}`;
+    document.getElementById('modalStatus').textContent = event.status;
+    document.getElementById('modalDescription').textContent = event.description || 'ไม่มีรายละเอียด';
 
-const searchInput = document.getElementById('searchInput');
-searchInput.addEventListener('input', searchEvents);
+    const isRegistered = registeredEventIds.has(event.id);
+    const isFull = event.currentParticipants >= event.maxParticipants;
 
-const categoryFilter = document.getElementById('categoryFilter');
-categoryFilter.addEventListener('change', searchEvents);
+    if (isRegistered) {
+      modalRegisterBtn.style.display = 'none';
+      modalCancelBtn.style.display = 'inline-block';
+      currentEventId = event.id;
+    } else if (isFull || event.status !== 'OPEN') {
+      modalRegisterBtn.style.display = 'none';
+      modalCancelBtn.style.display = 'none';
+    } else {
+      modalRegisterBtn.style.display = 'inline-block';
+      modalCancelBtn.style.display = 'none';
+      currentEventId = event.id;
+    }
 
-const dateFilter = document.getElementById('dateFilter');
-dateFilter.addEventListener('change', searchEvents);
-  
+    eventModal.style.display = 'block';
+  }
+
+  async function handleRegister(eventId) {
+    try {
+      const response = await fetch(`${REGISTRATIONS_API}/register?userId=${CURRENT_USER_ID}&eventId=${eventId}`, {
+        method: 'POST'
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('✅ ลงทะเบียนสำเร็จ!');
+        registeredEventIds.add(eventId);
+        await loadAllEvents();
+        eventModal.style.display = 'none';
+      } else {
+        alert('❌ ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error registering:', error);
+      alert('⚠️ เกิดข้อผิดพลาดในการลงทะเบียน');
+    }
+  }
+
+  async function handleCancelRegistration(eventId) {
+    if (!confirm('คุณแน่ใจหรือไม่ที่จะยกเลิกการลงทะเบียน?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${REGISTRATIONS_API}/cancel?userId=${CURRENT_USER_ID}&eventId=${eventId}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('✅ ยกเลิกการลงทะเบียนสำเร็จ!');
+        registeredEventIds.delete(eventId);
+        await loadAllEvents();
+        await loadMyRegistrations();
+        eventModal.style.display = 'none';
+      } else {
+        alert('❌ ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error cancelling registration:', error);
+      alert('⚠️ เกิดข้อผิดพลาดในการยกเลิก');
+    }
+  }
+
+  async function updateRegisteredEvents() {
+    try {
+      const response = await fetch(`${REGISTRATIONS_API}/my-registrations/${CURRENT_USER_ID}`);
+      if (!response.ok) throw new Error('Failed to fetch registrations');
+      
+      const registrations = await response.json();
+      registeredEventIds = new Set(registrations.map(r => r.event.id));
+    } catch (error) {
+      console.error('Error updating registered events:', error);
+    }
+  }
+
+  const searchInput = document.getElementById('searchInput');
+  const categoryFilter = document.getElementById('categoryFilter');
+  const dateFilter = document.getElementById('dateFilter');
+
+  if (searchInput) searchInput.addEventListener('input', loadAllEvents);
+  if (categoryFilter) categoryFilter.addEventListener('change', loadAllEvents);
+  if (dateFilter) dateFilter.addEventListener('change', loadAllEvents);
+
+  const createEventForm = document.getElementById('createEventForm');
+  if (createEventForm) {
+    createEventForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const eventData = {
+        userId: CURRENT_USER_ID,  
+        name: document.getElementById('eventName').value,
+        eventDate: document.getElementById('eventDateTime').value,
+        maxParticipants: parseInt(document.getElementById('eventCapacity').value),
+        category: document.getElementById('eventCategory').value,
+        description: document.getElementById('eventDescription').value
+      };
+
+      console.log('📤 Sending event data:', eventData);
+
+      try {
+        const response = await fetch(EVENTS_API, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json; charset=UTF-8'  
+          },
+          body: JSON.stringify(eventData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('✅ สร้างกิจกรรมสำเร็จ!');
+          createEventForm.reset();
+          
+          await loadAllEvents();
+          await loadMyEvents();
+          
+          const myEventsTab = document.querySelector('[data-target="my-events"]');
+          if (myEventsTab) {
+            myEventsTab.click();
+          }
+        } else {
+          alert('❌ สร้างกิจกรรมไม่สำเร็จ: ' + result.message);
+        }
+      } catch (error) {
+        console.error('Error creating event:', error);
+        alert('⚠️ เกิดข้อผิดพลาดในการสร้างกิจกรรม');
+      }
+    });
+  }
+
+
+  if (closeModal) {
+    closeModal.addEventListener('click', () => {
+      eventModal.style.display = 'none';
+    });
+  }
+
+  if (modalRegisterBtn) {
+    modalRegisterBtn.addEventListener('click', () => {
+      if (currentEventId) handleRegister(currentEventId);
+    });
+  }
+
+  if (modalCancelBtn) {
+    modalCancelBtn.addEventListener('click', () => {
+      if (currentEventId) handleCancelRegistration(currentEventId);
+    });
+  }
+
+  window.addEventListener('click', (e) => {
+    if (e.target === eventModal) {
+      eventModal.style.display = 'none';
+    }
+  });
+
+   const logoutBtn = document.querySelector('.logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+        localStorage.clear(); 
+        window.location.href = 'index.html';
+      }
+    });
+  }
+
+
+  loadAllEvents();
+
 });

@@ -9,11 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // เช็ค login
   const studentId = localStorage.getItem('studentId');
-  if (!studentId) {
+  const USER_ROLE = localStorage.getItem('role') || 'USER';
+  const isAdmin = USER_ROLE === 'ADMIN';
+   if (!studentId) {
     alert('กรุณา Login ก่อนใช้งาน');
     window.location.href = 'index.html';
     return;
   }
+
 
   // ==========================================
   // โหลดโปรไฟล์
@@ -207,28 +210,40 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function createEventCard(event, type, registration = null) {
-    const card = document.createElement('div');
-    card.className = 'event-card';
+  const card = document.createElement('div');
+  card.className = 'event-card';
 
-    const isRegistered = registeredEventIds.has(event.id);
-    const isFull = event.currentParticipants >= event.maxParticipants;
-    const seatsLeft = event.maxParticipants - event.currentParticipants;
+  const isRegistered = registeredEventIds.has(event.id);
+  const isFull = event.currentParticipants >= event.maxParticipants;
+  const seatsLeft = event.maxParticipants - event.currentParticipants;
 
-    let statusBadge = '';
-    if (type === 'registration') {
-      statusBadge = `<span class="status-badge registered">ลงทะเบียนแล้ว</span>`;
-    } else if (event.status === 'FULL' || isFull) {
-      statusBadge = `<span class="status-badge full">เต็มแล้ว</span>`;
-    } else if (event.status === 'OPEN') {
-      statusBadge = `<span class="status-badge open">เปิดรับสมัคร</span>`;
-    } else if (event.status === 'CANCELLED') {
-      statusBadge = `<span class="status-badge cancelled">ยกเลิก</span>`;
+  let statusBadge = '';
+  if (type === 'registration') {
+    statusBadge = `<span class="status-badge registered">ลงทะเบียนแล้ว</span>`;
+  } else if (event.status === 'FULL' || isFull) {
+    statusBadge = `<span class="status-badge full">เต็มแล้ว</span>`;
+  } else if (event.status === 'OPEN') {
+    statusBadge = `<span class="status-badge open">เปิดรับสมัคร</span>`;
+  } else if (event.status === 'CANCELLED') {
+    statusBadge = `<span class="status-badge cancelled">ยกเลิก</span>`;
+  } else {
+    statusBadge = `<span class="status-badge closed">ปิดรับสมัคร</span>`;
+  }
+
+  //============================
+  // กำหนดปุ่มการทำงาน (สำคัญ)
+  // ============================
+  let actionButtons = '';
+
+  if (type === 'all') {
+    if (isAdmin) {
+      // ⭐ แสดงเฉพาะปุ่มยกเลิกกิจกรรม
+      actionButtons = `
+        <button class="btn-view-details">ดูรายละเอียด</button>
+        <button class="btn-cancel-event admin">ยกเลิกกิจกรรม</button>
+      `;
     } else {
-      statusBadge = `<span class="status-badge closed">ปิดรับสมัคร</span>`;
-    }
-
-    let actionButtons = '';
-    if (type === 'all') {
+      // ⭐ USER ปกติ
       if (isRegistered) {
         actionButtons = `
           <button class="btn-view-details">ดูรายละเอียด</button>
@@ -242,53 +257,67 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
       }
-    } else if (type === 'registration') {
+    }
+  }
+
+  else if (type === 'registration') {
+    actionButtons = `
+      <button class="btn-view-details">ดูรายละเอียด</button>
+      <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
+    `;
+  }
+
+  else if (type === 'my-event') {
+    if (isAdmin) {
       actionButtons = `
         <button class="btn-view-details">ดูรายละเอียด</button>
-        <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
+        <button class="btn-cancel-event admin">ยกเลิกกิจกรรม</button>
       `;
-    } else if (type === 'my-event') {
+    } else {
       actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
     }
-
-    card.innerHTML = `
-      <h4>${event.name}</h4>
-      <span class="category">${event.category}</span>
-      ${statusBadge}
-      <div class="event-details">
-        <p><strong>📅 วันที่:</strong> ${new Date(event.eventDate).toLocaleString('th-TH')}</p>
-        <p><strong>👥 ผู้เข้าร่วม:</strong> ${event.currentParticipants}/${event.maxParticipants}</p>
-        ${!isFull && type === 'all' ? `<p class="seats-left">🎫 เหลือที่นั่ง ${seatsLeft} ที่</p>` : ''}
-        <p class="description">${event.description || 'ไม่มีรายละเอียด'}</p>
-      </div>
-      <div class="event-action-row">
-        ${actionButtons}
-      </div>
-    `;
-
-    const viewBtn = card.querySelector('.btn-view-details');
-    if (viewBtn) {
-      viewBtn.addEventListener('click', () => showEventDetails(event));
-    }
-
-    const registerBtn = card.querySelector('.btn-register');
-    if (registerBtn && !registerBtn.disabled) {
-      registerBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleRegister(event.id);
-      });
-    }
-
-    const cancelBtn = card.querySelector('.btn-cancel-registration');
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleCancelRegistration(event.id);
-      });
-    }
-
-    return card;
   }
+// HTML ของการ์ดกิจกรรม
+  card.innerHTML = `
+    <h4>${event.name}</h4>
+    <span class="category">${event.category}</span>
+    ${statusBadge}
+    <div class="event-details">
+      <p><strong>📅 วันที่:</strong> ${new Date(event.eventDate).toLocaleString('th-TH')}</p>
+      <p><strong>👥 ผู้เข้าร่วม:</strong> ${event.currentParticipants}/${event.maxParticipants}</p>
+      ${!isFull && type === 'all' ? `<p class="seats-left">🎫 เหลือที่นั่ง ${seatsLeft} ที่</p>` : ''}
+      <p class="description">${event.description || 'ไม่มีรายละเอียด'}</p>
+    </div>
+    <div class="event-action-row">
+      ${actionButtons}
+    </div>
+  `;
+  // ============================
+  // Event Listeners
+  // ============================
+
+  const viewBtn = card.querySelector('.btn-view-details');
+  if (viewBtn) {
+    viewBtn.addEventListener('click', () => showEventDetails(event));
+  }
+
+  const registerBtn = card.querySelector('.btn-register');
+  if (registerBtn) {
+    registerBtn.addEventListener('click', () => handleRegister(event.id));
+  }
+
+  const cancelRegBtn = card.querySelector('.btn-cancel-registration');
+  if (cancelRegBtn) {
+    cancelRegBtn.addEventListener('click', () => handleCancelRegistration(event.id));
+  }
+
+  const adminCancelBtn = card.querySelector('.btn-cancel-event');
+  if (adminCancelBtn && isAdmin) {
+    adminCancelBtn.addEventListener('click', () => handleCancelEvent(event.id));
+  }
+
+  return card;
+}
 
   function showEventDetails(event) {
     document.getElementById('modalEventName').textContent = event.name;
@@ -340,32 +369,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function handleCancelRegistration(eventId) {
-    if (!confirm('คุณแน่ใจหรือไม่ที่จะยกเลิกการลงทะเบียน?')) {
-      return;
+  async function handleCancelEvent(eventId) {
+  const confirmDelete = confirm("⚠️ ยืนยันที่จะยกเลิกกิจกรรมนี้?\nผู้ลงทะเบียนทั้งหมดจะถูกลบออก");
+
+  if (!confirmDelete) return;
+
+  try {
+    const response = await fetch(`${EVENTS_API}/${eventId}/cancel`, {
+      method: 'PUT'
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      alert("✅ ยกเลิกกิจกรรมสำเร็จ!");
+
+      await loadAllEvents();
+      await loadMyEvents();
+      await loadMyRegistrations();
+
+    } else {
+      alert("❌ ไม่สามารถยกเลิกกิจกรรมได้: " + result.message);
     }
 
-    try {
-      const response = await fetch(`${REGISTRATIONS_API}/cancel?userId=${CURRENT_USER_ID}&eventId=${eventId}`, {
-        method: 'DELETE'
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert('✅ ยกเลิกการลงทะเบียนสำเร็จ!');
-        registeredEventIds.delete(eventId);
-        await loadAllEvents();
-        await loadMyRegistrations();
-        eventModal.style.display = 'none';
-      } else {
-        alert('❌ ' + result.message);
-      }
-    } catch (error) {
-      console.error('Error cancelling registration:', error);
-      alert('⚠️ เกิดข้อผิดพลาดในการยกเลิก');
-    }
+  } catch (error) {
+    console.error("Error cancelling event:", error);
+    alert("⚠️ ระบบมีปัญหา ไม่สามารถยกเลิกกิจกรรมได้");
   }
+}
 
   async function updateRegisteredEvents() {
     try {

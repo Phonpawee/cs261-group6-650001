@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const dateRange = document.getElementById('dateFilter')?.value || 'all';
 
       let filteredEvents = events.filter(event => {
-        if (event.status !== 'OPEN') return false;
+        if (!isAdmin && event.status !== 'OPEN') return false;
 
         if (searchTerm && !event.name.toLowerCase().includes(searchTerm) && 
             !event.description?.toLowerCase().includes(searchTerm)) {
@@ -235,15 +235,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================
   let actionButtons = '';
 
-  if (type === 'all') {
-    if (isAdmin) {
-      // ⭐ แสดงเฉพาะปุ่มยกเลิกกิจกรรม
-      actionButtons = `
-        <button class="btn-view-details">ดูรายละเอียด</button>
-        <button class="btn-cancel-event admin">ยกเลิกกิจกรรม</button>
-      `;
-    } else {
-      // ⭐ USER ปกติ
+if (isAdmin) {
+    // ⭐ Admin เห็นแค่ปุ่ม "ยกเลิกกิจกรรม"
+    actionButtons = `
+      <button class="btn-view-details">ดูรายละเอียด</button>
+      <button class="btn-cancel-event admin">ยกเลิกกิจกรรม</button>
+    `;
+  } else {
+    // ⭐ USER ปกติ
+    if (type === 'all') {
       if (isRegistered) {
         actionButtons = `
           <button class="btn-view-details">ดูรายละเอียด</button>
@@ -258,26 +258,20 @@ document.addEventListener('DOMContentLoaded', () => {
         actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
       }
     }
-  }
 
-  else if (type === 'registration') {
-    actionButtons = `
-      <button class="btn-view-details">ดูรายละเอียด</button>
-      <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
-    `;
-  }
-
-  else if (type === 'my-event') {
-    if (isAdmin) {
+    if (type === 'registration') {
       actionButtons = `
         <button class="btn-view-details">ดูรายละเอียด</button>
-        <button class="btn-cancel-event admin">ยกเลิกกิจกรรม</button>
+        <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
       `;
-    } else {
+    }
+
+    if (type === 'my-event') {
       actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
     }
   }
-// HTML ของการ์ดกิจกรรม
+
+// HTML card
   card.innerHTML = `
     <h4>${event.name}</h4>
     <span class="category">${event.category}</span>
@@ -285,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="event-details">
       <p><strong>📅 วันที่:</strong> ${new Date(event.eventDate).toLocaleString('th-TH')}</p>
       <p><strong>👥 ผู้เข้าร่วม:</strong> ${event.currentParticipants}/${event.maxParticipants}</p>
-      ${!isFull && type === 'all' ? `<p class="seats-left">🎫 เหลือที่นั่ง ${seatsLeft} ที่</p>` : ''}
+      ${(!isAdmin && !isFull && type === 'all') ? `<p class="seats-left">🎫 เหลือที่นั่ง ${seatsLeft} ที่</p>` : ''}
       <p class="description">${event.description || 'ไม่มีรายละเอียด'}</p>
     </div>
     <div class="event-action-row">
@@ -296,24 +290,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Event Listeners
   // ============================
 
-  const viewBtn = card.querySelector('.btn-view-details');
-  if (viewBtn) {
-    viewBtn.addEventListener('click', () => showEventDetails(event));
+  card.querySelector('.btn-view-details')?.addEventListener('click', () => showEventDetails(event));
+
+  if (!isAdmin) {
+    card.querySelector('.btn-register')?.addEventListener('click', () => handleRegister(event.id));
+    card.querySelector('.btn-cancel-registration')?.addEventListener('click', () => handleCancelRegistration(event.id));
   }
 
-  const registerBtn = card.querySelector('.btn-register');
-  if (registerBtn) {
-    registerBtn.addEventListener('click', () => handleRegister(event.id));
-  }
-
-  const cancelRegBtn = card.querySelector('.btn-cancel-registration');
-  if (cancelRegBtn) {
-    cancelRegBtn.addEventListener('click', () => handleCancelRegistration(event.id));
-  }
-
-  const adminCancelBtn = card.querySelector('.btn-cancel-event');
-  if (adminCancelBtn && isAdmin) {
-    adminCancelBtn.addEventListener('click', () => handleCancelEvent(event.id));
+  if (isAdmin) {
+    card.querySelector('.btn-cancel-event')?.addEventListener('click', () => handleCancelEvent(event.id));
   }
 
   return card;

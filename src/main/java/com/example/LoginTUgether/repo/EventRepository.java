@@ -33,4 +33,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             @Param("category") String category,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT e FROM Event e WHERE e.eventDate < :now AND e.status NOT IN ('CLOSED', 'CANCELLED')")
+    List<Event> findExpiredEvents(@Param("now") LocalDateTime now);
 }

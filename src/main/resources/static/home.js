@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	    profile.data?.displayname_th ||
 	    studentId;
 
-
     } catch (err) {
       console.error(err);
     }
@@ -45,6 +44,23 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentEventId = null;
   let registeredEventIds = new Set();
 
+  function isEventExpired(eventDate) {
+    const now = new Date();
+    const eventDateTime = new Date(eventDate);
+    return eventDateTime < now;
+  }
+
+  function getEventStatus(event) {
+    if (isEventExpired(event.eventDate)) {
+      return 'CLOSED';
+    }
+    
+    if (event.currentParticipants >= event.maxParticipants) {
+      return 'FULL';
+    }
+    
+    return event.status;
+  }
 
   const tabs = document.querySelectorAll('.tab');
   const contents = document.querySelectorAll('.tab-content');
@@ -87,7 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const dateRange = document.getElementById('dateFilter')?.value || 'all';
 
       let filteredEvents = events.filter(event => {
-        if (event.status !== 'OPEN') return false;
+        if (isEventExpired(event.eventDate)) {
+          return false;
+        }
+
+        if (event.status !== 'OPEN' && !isEventExpired(event.eventDate)) {
+          return false;
+        }
 
         if (searchTerm && !event.name.toLowerCase().includes(searchTerm) && 
             !event.description?.toLowerCase().includes(searchTerm)) {
@@ -188,6 +210,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      events.sort((a, b) => {
+        const aExpired = isEventExpired(a.eventDate);
+        const bExpired = isEventExpired(b.eventDate);
+        
+        if (aExpired && !bExpired) return 1;
+        if (!aExpired && bExpired) return -1;
+        
+        return new Date(b.eventDate) - new Date(a.eventDate);
+      });
+
       events.forEach(event => {
         const card = createEventCard(event, 'my-event');
         myEventsListContainer.appendChild(card);
@@ -203,31 +235,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'event-card';
 
+    const actualStatus = getEventStatus(event);
+    const expired = isEventExpired(event.eventDate);
+    
     const isRegistered = registeredEventIds.has(event.id);
     const isFull = event.currentParticipants >= event.maxParticipants;
     const seatsLeft = event.maxParticipants - event.currentParticipants;
 
     let statusBadge = '';
-    if (type === 'registration') {
+    if (expired) {
+      statusBadge = `<span class="status-badge closed">หมดเวลาลงทะเบียน</span>`;
+    } else if (type === 'registration') {
       statusBadge = `<span class="status-badge registered">ลงทะเบียนแล้ว</span>`;
-    } else if (event.status === 'FULL' || isFull) {
+    } else if (actualStatus === 'FULL' || isFull) {
       statusBadge = `<span class="status-badge full">เต็มแล้ว</span>`;
-    } else if (event.status === 'OPEN') {
+    } else if (actualStatus === 'OPEN') {
       statusBadge = `<span class="status-badge open">เปิดรับสมัคร</span>`;
-    } else if (event.status === 'CANCELLED') {
+    } else if (actualStatus === 'CANCELLED') {
       statusBadge = `<span class="status-badge cancelled">ยกเลิก</span>`;
     } else {
       statusBadge = `<span class="status-badge closed">ปิดรับสมัคร</span>`;
     }
 
     let actionButtons = '';
-    if (type === 'all') {
+    if (expired) {
+      actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
+    } else if (type === 'all') {
       if (isRegistered) {
         actionButtons = `
           <button class="btn-view-details">ดูรายละเอียด</button>
           <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
         `;
-      } else if (!isFull && event.status === 'OPEN') {
+      } else if (!isFull && actualStatus === 'OPEN') {
         actionButtons = `
           <button class="btn-view-details">ดูรายละเอียด</button>
           <button class="btn-register">ลงทะเบียน</button>
@@ -236,12 +275,21 @@ document.addEventListener('DOMContentLoaded', () => {
         actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
       }
     } else if (type === 'registration') {
-      actionButtons = `
-        <button class="btn-view-details">ดูรายละเอียด</button>
-        <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
-      `;
+      if (!expired) {
+        actionButtons = `
+          <button class="btn-view-details">ดูรายละเอียด</button>
+          <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
+        `;
+      } else {
+        actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
+      }
     } else if (type === 'my-event') {
       actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
+    }
+
+    if (expired) {
+      card.style.opacity = '0.7';
+      card.style.borderLeft = '5px solid #757575';
     }
 
     card.innerHTML = `
@@ -250,8 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
       ${statusBadge}
       <div class="event-details">
         <p><strong>📅 วันที่:</strong> ${new Date(event.eventDate).toLocaleString('th-TH')}</p>
+        ${expired ? '<p style="color: #f44336; font-weight: bold;">⏰ กิจกรรมนี้หมดเวลาลงทะเบียนแล้ว</p>' : ''}
         <p><strong>👥 ผู้เข้าร่วม:</strong> ${event.currentParticipants}/${event.maxParticipants}</p>
-        ${!isFull && type === 'all' ? `<p class="seats-left">🎫 เหลือที่นั่ง ${seatsLeft} ที่</p>` : ''}
+        ${!isFull && type === 'all' && !expired ? `<p class="seats-left">🎫 เหลือที่นั่ง ${seatsLeft} ที่</p>` : ''}
         <p class="description">${event.description || 'ไม่มีรายละเอียด'}</p>
       </div>
       <div class="event-action-row">
@@ -284,22 +333,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showEventDetails(event) {
+    const actualStatus = getEventStatus(event);
+    const expired = isEventExpired(event.eventDate);
+
     document.getElementById('modalEventName').textContent = event.name;
     document.getElementById('modalCategory').textContent = event.category;
     document.getElementById('modalDate').textContent = new Date(event.eventDate).toLocaleString('th-TH');
     document.getElementById('modalOrganizer').textContent = event.organizer?.name || event.organizer?.email || 'Unknown';
     document.getElementById('modalCapacity').textContent = `${event.currentParticipants}/${event.maxParticipants}`;
-    document.getElementById('modalStatus').textContent = event.status;
+    document.getElementById('modalStatus').textContent = expired ? 'หมดเวลาลงทะเบียน' : actualStatus;
     document.getElementById('modalDescription').textContent = event.description || 'ไม่มีรายละเอียด';
 
     const isRegistered = registeredEventIds.has(event.id);
     const isFull = event.currentParticipants >= event.maxParticipants;
 
-    if (isRegistered) {
+    if (expired) {
+      modalRegisterBtn.style.display = 'none';
+      modalCancelBtn.style.display = 'none';
+    } else if (isRegistered) {
       modalRegisterBtn.style.display = 'none';
       modalCancelBtn.style.display = 'inline-block';
       currentEventId = event.id;
-    } else if (isFull || event.status !== 'OPEN') {
+    } else if (isFull || actualStatus !== 'OPEN') {
       modalRegisterBtn.style.display = 'none';
       modalCancelBtn.style.display = 'none';
     } else {
@@ -386,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
 
       const eventData = {
-        userId: CURRENT_USER_ID,  
+        userId: CURRENT_USER_ID,
         name: document.getElementById('eventName').value,
         eventDate: document.getElementById('eventDateTime').value,
         maxParticipants: parseInt(document.getElementById('eventCapacity').value),
@@ -400,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch(EVENTS_API, {
           method: 'POST',
           headers: { 
-            'Content-Type': 'application/json; charset=UTF-8'  
+            'Content-Type': 'application/json; charset=UTF-8'
           },
           body: JSON.stringify(eventData)
         });
@@ -428,7 +483,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   if (closeModal) {
     closeModal.addEventListener('click', () => {
       eventModal.style.display = 'none';
@@ -453,16 +507,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+
    const logoutBtn = document.querySelector('.logout');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-        localStorage.clear(); 
+        localStorage.clear();
         window.location.href = 'index.html';
       }
     });
   }
-
 
   loadAllEvents();
 

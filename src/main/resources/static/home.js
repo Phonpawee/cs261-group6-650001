@@ -1,9 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ==========================================
+  // CONFIG
+  // ==========================================
   const API_BASE_URL = 'http://localhost:8081/api';
   const EVENTS_API = `${API_BASE_URL}/events`;
   const REGISTRATIONS_API = `${API_BASE_URL}/registrations`;
 
+  // เช็ค login
   const studentId = localStorage.getItem('studentId');
   if (!studentId) {
     alert('กรุณา Login ก่อนใช้งาน');
@@ -11,27 +15,50 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // ==========================================
+  // โหลดโปรไฟล์
+  // ==========================================
   async function loadProfile() {
     try {
       const res = await fetch(`${API_BASE_URL}/profile/std-info?id=${studentId}`);
       const profile = await res.json();
 
-	  document.getElementById('userEmail').textContent =
-	    profile.data?.email ||
-	    profile.data?.displayname_en ||
-	    profile.data?.displayname_th ||
-	    studentId;
+      // ดึงอีเมล
+      const email =
+        profile.data?.email ||
+        profile.data?.displayname_en ||
+        profile.data?.displayname_th ||
+        studentId;
+
+      // ดึง role จาก localStorage
+      const role = localStorage.getItem('role') || 'STUDENT';
+
+      // แสดงบนหน้าเว็บ
+      if (role === 'ADMIN') {
+        document.getElementById('userEmail').textContent = `${email} (Admin)`;
+      } else {
+        document.getElementById('userEmail').textContent = email;
+      }
 
     } catch (err) {
       console.error(err);
     }
   }
 
+
   loadProfile();
 
-  const CURRENT_USER_ID = parseInt(localStorage.getItem('userId')) || 1;
-  console.log('🆔 Current User ID:', CURRENT_USER_ID);
+  // ดึงข้อมูล user จาก localStorage
+  const CURRENT_USER_ID = parseInt(localStorage.getItem('userId'), 10);
+  const CURRENT_USER_ROLE = localStorage.getItem('role') || 'STUDENT';
 
+  if (!CURRENT_USER_ID || Number.isNaN(CURRENT_USER_ID)) {
+    alert('ไม่พบข้อมูลผู้ใช้ กรุณา Login ใหม่');
+    window.location.href = 'index.html';
+    return;
+  }
+
+  // DOM
   const allEventsListContainer = document.getElementById('allEventsList');
   const myRegistrationsListContainer = document.getElementById('myRegistrationsList');
   const myEventsListContainer = document.getElementById('myEventsList');
@@ -43,6 +70,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentEventId = null;
   let registeredEventIds = new Set();
+
+
+  
+  // ซ่อนส่วนสร้างกิจกรรมถ้าไม่ใช่ ADMIN
+  const createEventTab = document.querySelector('[data-target="create-event"]');
+  const createEventSection = document.getElementById('create-event');
+  if (CURRENT_USER_ROLE !== 'ADMIN') {
+    if (createEventTab) {
+      createEventTab.style.display = 'none';
+    }
+    if (createEventSection) {
+      createEventSection.style.display = 'none';
+    }
+  }
+  // ซ่อน My Events สำหรับ STUDENT
+  const myEventsTab = document.querySelector('[data-target="my-events"]');
+  const myEventsSection = document.getElementById('my-events');
+  if (CURRENT_USER_ROLE !== 'ADMIN') {
+      if (myEventsTab) {
+          myEventsTab.style.display = 'none';
+      }
+      if (myEventsSection) {
+          myEventsSection.style.display = 'none';
+      }
+  }
+
+
 
   function isEventExpired(eventDate) {
     const now = new Date();
@@ -508,16 +562,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-   const logoutBtn = document.querySelector('.logout');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-        localStorage.clear();
-        window.location.href = 'index.html';
-      }
-    });
-  }
+  const logoutBtn = document.querySelector('.logout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+          localStorage.removeItem('studentId');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('role');
+          localStorage.removeItem('nameTh');
+          localStorage.removeItem('nameEn');
+          localStorage.removeItem('email');
+          window.location.href = 'index.html';
+        }
+      });
+    }
 
-  loadAllEvents();
+    loadAllEvents();
 
-});
+  });

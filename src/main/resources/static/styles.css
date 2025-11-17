@@ -437,6 +437,41 @@ main {
   box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
 }
 
+/* ⭐ ปุ่มสำหรับ ADMIN */
+.btn-cancel-event {
+  background-color: #f44336;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-cancel-event:hover {
+  background-color: #da190b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.btn-view-registrants {
+  background-color: #2196f3;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-view-registrants:hover {
+  background-color: #1976d2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
 /* -------------------- MODAL -------------------- */
 .modal {
   display: none;
@@ -527,6 +562,26 @@ main {
   padding: 12px;
   font-size: 16px;
   border-radius: 8px;
+}
+
+/* ⭐ ตารางผู้ลงทะเบียนใน modal */
+.registration-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.registration-table th,
+.registration-table td {
+  border: 1px solid #eee;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.registration-table th {
+  background-color: #f7f7f7;
+  font-weight: bold;
 }
 
 /* -------------------- CREATE EVENT -------------------- */
@@ -693,9 +748,14 @@ footer {
   .tab {
     flex: 1 1 45%;
   }
-}
-/* -------------------- NOTIFICATIONS (BELL) -------------------- */
 
+  .modal-content {
+    width: 95%;
+    margin-top: 20%;
+  }
+}
+
+/* -------------------- NOTIFICATIONS (BELL) -------------------- */
 .notifications {
   position: relative;
   margin-right: 8px;
@@ -857,4 +917,6 @@ footer {
     transform: translateX(50%);
     width: 90vw;
   }
+  
+
 }

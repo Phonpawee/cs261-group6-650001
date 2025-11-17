@@ -16,25 +16,25 @@
         <h1>TUgether</h1>
       </div>
       <div class="user-info">
-		
-		<!-- 🔔 Notification UI -->
-		        <div class="notifications">
-		          <button id="notiBell" class="noti-bell">
-		            🔔
-		            <span id="notiBadge" class="noti-badge hidden">0</span>
-		          </button>
 
-		          <div id="notiDropdown" class="noti-dropdown hidden">
-		            <div class="noti-dropdown-header">
-		              <span>การแจ้งเตือน</span>
-		            </div>
-		            <div id="notiList" class="noti-list">
-		              <p class="noti-empty">กำลังโหลดการแจ้งเตือน...</p>
-		            </div>
-		          </div>
-		        </div>
-		<!-- จบ Notification UI -->
-		
+        <!-- 🔔 Notification UI -->
+        <div class="notifications">
+          <button id="notiBell" class="noti-bell">
+            🔔
+            <span id="notiBadge" class="noti-badge hidden">0</span>
+          </button>
+
+          <div id="notiDropdown" class="noti-dropdown hidden">
+            <div class="noti-dropdown-header">
+              <span>การแจ้งเตือน</span>
+            </div>
+            <div id="notiList" class="noti-list">
+              <p class="noti-empty">กำลังโหลดการแจ้งเตือน...</p>
+            </div>
+          </div>
+        </div>
+        <!-- จบ Notification UI -->
+
         <span id="userEmail">Loading...</span>
         <button class="logout">Logout</button>
       </div>
@@ -60,26 +60,26 @@
         <div class="events-header">
           <h3>Upcoming Events</h3>
         </div>
-		
+
         <div class="search-container">
-		  <input type="text" id="searchInput" placeholder="Search events..." />
-		  <select id="categoryFilter">
-			<option value="all">All Categories</option>
-			<option value="Career">Career</option>
-			<option value="Academic">Academic</option>
-			<option value="Activity">Activity</option>
-			<option value="Volunteer">Volunteer</option>
-			<option value="Technology">Technology</option>
-			<option value="Sports">Sports</option>
-			<option value="Culture">Culture</option>
-		  </select>
-		  <select id="dateFilter">
-		    <option value="all">All Dates</option>
-		    <option value="today">Today</option>
-		    <option value="this-week">This Week</option>
-		    <option value="next-week">Next Week</option>
-		  </select>
-		</div>
+          <input type="text" id="searchInput" placeholder="Search events..." />
+          <select id="categoryFilter">
+            <option value="all">All Categories</option>
+            <option value="Career">Career</option>
+            <option value="Academic">Academic</option>
+            <option value="Activity">Activity</option>
+            <option value="Volunteer">Volunteer</option>
+            <option value="Technology">Technology</option>
+            <option value="Sports">Sports</option>
+            <option value="Culture">Culture</option>
+          </select>
+          <select id="dateFilter">
+            <option value="all">All Dates</option>
+            <option value="today">Today</option>
+            <option value="this-week">This Week</option>
+            <option value="next-week">Next Week</option>
+          </select>
+        </div>
 
         <div class="event-list" id="allEventsList">
           <p class="loading-message">กำลังโหลดกิจกรรม...</p>
@@ -92,7 +92,7 @@
   <section id="my-registrations" class="tab-content">
     <h2 class="section-title">My Registrations</h2>
     <p class="section-desc">กิจกรรมทั้งหมดที่คุณลงทะเบียนไว้จะแสดงที่นี่</p>
-    
+
     <div class="event-list" id="myRegistrationsList">
       <p class="loading-message">กำลังโหลดรายการลงทะเบียน...</p>
     </div>
@@ -102,7 +102,7 @@
   <section id="my-events" class="tab-content">
     <h2 class="section-title">My Events</h2>
     <p class="section-desc">รายการกิจกรรมที่คุณเป็นผู้จัดจะปรากฏในหน้านี้</p>
-    
+
     <div class="event-list" id="myEventsList">
       <p class="loading-message">กำลังโหลดกิจกรรมของคุณ...</p>
     </div>
@@ -111,16 +111,16 @@
   <!-- ==================== CREATE EVENT ==================== -->
   <section id="create-event" class="tab-content">
     <h2 class="section-title">Create Event</h2>
-    
+
     <form class="create-form" id="createEventForm">
       <label>Event Name</label>
       <input type="text" id="eventName" placeholder="กรอกชื่อกิจกรรม" required>
 
       <label>Date & Time</label>
       <input type="datetime-local" id="eventDateTime" required>
-      
+
       <label>Max Capacity</label>
-      <input type="number" id="eventCapacity" placeholder="จำนวนผู้เข้าร่วมสูงสุด" min="1" required> 
+      <input type="number" id="eventCapacity" placeholder="จำนวนผู้เข้าร่วมสูงสุด" min="1" required>
 
       <label>Category</label>
       <select id="eventCategory" required>
@@ -129,7 +129,7 @@
         <option value="Academic">Academic</option>
         <option value="Activity">Activity</option>
         <option value="Volunteer">Volunteer</option>
-        <option value="Technology">Technology</option> 
+        <option value="Technology">Technology</option>
         <option value="Sports">Sports</option>
         <option value="Culture">Culture</option>
       </select>
@@ -162,6 +162,29 @@
       <div class="modal-actions">
         <button id="modalRegisterBtn" class="register-btn">Register</button>
         <button id="modalCancelBtn" class="cancel-registration-btn">Cancel Registration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== REGISTRATION LIST MODAL (ADMIN) ==================== -->
+  <div id="registrationModal" class="modal">
+    <div class="modal-content">
+      <span class="close registration-close">&times;</span>
+      <h2>รายชื่อผู้ลงทะเบียน</h2>
+      <div class="modal-body">
+        <table class="registration-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ชื่อ</th>
+              <th>Email</th>
+              <th>เวลาลงทะเบียน</th>
+            </tr>
+          </thead>
+          <tbody id="registrationTableBody">
+            <!-- rows will be filled by JS -->
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

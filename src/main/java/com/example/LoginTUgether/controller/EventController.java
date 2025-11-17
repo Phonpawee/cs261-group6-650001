@@ -1,27 +1,16 @@
 package com.example.LoginTUgether.controller;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.LoginTUgether.model.Event;
 import com.example.LoginTUgether.model.User;
 import com.example.LoginTUgether.repo.EventRepository;
+import com.example.LoginTUgether.repo.RegistrationRepository;
 import com.example.LoginTUgether.repo.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/events")
@@ -33,6 +22,9 @@ public class EventController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RegistrationRepository registrationRepository;
 
     @GetMapping
     public ResponseEntity<List<Event>> getAllEvents() {
@@ -49,83 +41,46 @@ public class EventController {
 
     @GetMapping("/category/{category}")
     public ResponseEntity<List<Event>> getEventsByCategory(@PathVariable String category) {
-        List<Event> events = eventRepository.findByCategory(category);
-        return ResponseEntity.ok(events);
+        return ResponseEntity.ok(eventRepository.findByCategory(category));
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<Event>> searchEvents(@RequestParam String keyword) {
-        List<Event> events = eventRepository.findByNameContainingIgnoreCase(keyword);
-        return ResponseEntity.ok(events);
-    }
-
-    @GetMapping("/advanced-search")
-    public ResponseEntity<List<Event>> advancedSearch(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate) {
-
-        LocalDateTime start = null;
-        LocalDateTime end = null;
-
-        try {
-            if (startDate != null && !startDate.isEmpty()) {
-                start = LocalDateTime.parse(startDate);
-            }
-            if (endDate != null && !endDate.isEmpty()) {
-                end = LocalDateTime.parse(endDate);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        List<Event> events = eventRepository.searchEvents(keyword, category, start, end);
-        return ResponseEntity.ok(events);
+        return ResponseEntity.ok(eventRepository.findByNameContainingIgnoreCase(keyword));
     }
 
     @PostMapping
     public ResponseEntity<?> createEvent(@RequestBody Map<String, Object> requestBody) {
-        
+
         Map<String, Object> response = new HashMap<>();
-        
         try {
-            Long userId = requestBody.get("userId") != null 
-                ? Long.parseLong(requestBody.get("userId").toString()) 
-                : null;
-            
-            if (userId == null) {
-                response.put("success", false);
-                response.put("message", "กรุณาระบุผู้สร้างกิจกรรม");
-                return ResponseEntity.badRequest().body(response);
-            }
-            
+            Long userId = Long.parseLong(requestBody.get("userId").toString());
             Optional<User> userOpt = userRepository.findById(userId);
+
             if (!userOpt.isPresent()) {
                 response.put("success", false);
-                response.put("message", "ไม่พบผู้ใช้งาน");
+                response.put("message", "ไม่พบผู้ใช้");
                 return ResponseEntity.badRequest().body(response);
             }
-            
+
             Event event = new Event();
             event.setName(requestBody.get("name").toString());
             event.setCategory(requestBody.get("category").toString());
             event.setDescription(requestBody.get("description").toString());
             event.setEventDate(LocalDateTime.parse(requestBody.get("eventDate").toString()));
             event.setMaxParticipants(Integer.parseInt(requestBody.get("maxParticipants").toString()));
-            event.setCurrentParticipants(0);
             event.setStatus("OPEN");
-            
+            event.setCurrentParticipants(0);
             event.setOrganizer(userOpt.get());
-            
-            Event savedEvent = eventRepository.save(event);
-            
+
+            eventRepository.save(event);
+
             response.put("success", true);
             response.put("message", "สร้างกิจกรรมสำเร็จ");
-            response.put("event", savedEvent);
-            
+            response.put("event", event);
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "เกิดข้อผิดพลาด: " + e.getMessage());
@@ -135,33 +90,38 @@ public class EventController {
 
     @GetMapping("/my-events/{userId}")
     public ResponseEntity<List<Event>> getMyEvents(@PathVariable Long userId) {
-        List<Event> events = eventRepository.findByOrganizerId(userId);
-        return ResponseEntity.ok(events);
+        return ResponseEntity.ok(eventRepository.findByOrganizerId(userId));
     }
-    @PutMapping("/cancel/{eventId}")
-    public ResponseEntity<Map<String, Object>> cancelEvent(@PathVariable Long eventId) {
-    Map<String, Object> response = new HashMap<>();
 
-    try {
-        Optional<Event> eventOpt = eventRepository.findById(eventId);
-        if (!eventOpt.isPresent()) {
+    // ============================================
+    //  ⭐⭐ DELETE EVENT — ลบถาวร (Admin)
+    // ============================================
+    @DeleteMapping("/{eventId}")
+    public ResponseEntity<Map<String, Object>> deleteEvent(@PathVariable Long eventId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Optional<Event> eventOpt = eventRepository.findById(eventId);
+            if (!eventOpt.isPresent()) {
+                response.put("success", false);
+                response.put("message", "ไม่พบกิจกรรม");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Delete all registrations for this event
+            registrationRepository.deleteByEventId(eventId);
+
+            // Delete event
+            eventRepository.deleteById(eventId);
+
+            response.put("success", true);
+            response.put("message", "ลบกิจกรรมสำเร็จ");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
             response.put("success", false);
-            response.put("message", "ไม่พบกิจกรรม");
-            return ResponseEntity.badRequest().body(response);
+            response.put("message", "เกิดข้อผิดพลาด: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
         }
-
-        Event event = eventOpt.get();
-        event.setStatus("CANCELLED");  
-        eventRepository.save(event);   
-
-        response.put("success", true);
-        response.put("message", "ยกเลิกกิจกรรมสำเร็จ");
-        return ResponseEntity.ok(response);
-
-    } catch (Exception e) {
-        response.put("success", false);
-        response.put("message", "เกิดข้อผิดพลาด: " + e.getMessage());
-        return ResponseEntity.status(500).body(response);
     }
-}
 }

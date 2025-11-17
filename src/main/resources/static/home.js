@@ -161,9 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
           return false;
         }
 
-        if (event.status !== 'OPEN' && !isEventExpired(event.eventDate)) {
+       if (CURRENT_USER_ROLE !== 'ADMIN') {
+       if (event.status !== 'OPEN' && !isEventExpired(event.eventDate)) {
           return false;
         }
+      }
 
         if (searchTerm && !event.name.toLowerCase().includes(searchTerm) && 
             !event.description?.toLowerCase().includes(searchTerm)) {
@@ -285,36 +287,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function createEventCard(event, type, registration = null) {
-    const card = document.createElement('div');
-    card.className = 'event-card';
+    function createEventCard(event, type, registration = null) {
+  const card = document.createElement('div');
+  card.className = 'event-card';
 
-    const actualStatus = getEventStatus(event);
-    const expired = isEventExpired(event.eventDate);
-    
-    const isRegistered = registeredEventIds.has(event.id);
-    const isFull = event.currentParticipants >= event.maxParticipants;
-    const seatsLeft = event.maxParticipants - event.currentParticipants;
+  const actualStatus = getEventStatus(event);
+  const expired = isEventExpired(event.eventDate);
 
-    let statusBadge = '';
-    if (expired) {
-      statusBadge = `<span class="status-badge closed">หมดเวลาลงทะเบียน</span>`;
-    } else if (type === 'registration') {
-      statusBadge = `<span class="status-badge registered">ลงทะเบียนแล้ว</span>`;
-    } else if (actualStatus === 'FULL' || isFull) {
-      statusBadge = `<span class="status-badge full">เต็มแล้ว</span>`;
-    } else if (actualStatus === 'OPEN') {
-      statusBadge = `<span class="status-badge open">เปิดรับสมัคร</span>`;
-    } else if (actualStatus === 'CANCELLED') {
-      statusBadge = `<span class="status-badge cancelled">ยกเลิก</span>`;
-    } else {
-      statusBadge = `<span class="status-badge closed">ปิดรับสมัคร</span>`;
-    }
+  const isRegistered = registeredEventIds.has(event.id);
+  const isFull = event.currentParticipants >= event.maxParticipants;
+  const seatsLeft = event.maxParticipants - event.currentParticipants;
 
-    let actionButtons = '';
+  let statusBadge = '';
+  if (actualStatus === 'CANCELLED') {
+    statusBadge = `<span class="status-badge cancelled">ยกเลิก</span>`;
+  } else if (expired) {
+    statusBadge = `<span class="status-badge closed">หมดเวลาลงทะเบียน</span>`;
+  } else if (type === 'registration') {
+    statusBadge = `<span class="status-badge registered">ลงทะเบียนแล้ว</span>`;
+  } else if (actualStatus === 'FULL' || isFull) {
+    statusBadge = `<span class="status-badge full">เต็มแล้ว</span>`;
+  } else if (actualStatus === 'OPEN') {
+    statusBadge = `<span class="status-badge open">เปิดรับสมัคร</span>`;
+  }
+
+
+  let actionButtons = '';
+  if (CURRENT_USER_ROLE === 'ADMIN') {
+    actionButtons = `
+      <button class="btn-view-details">ดูรายละเอียด</button>
+      <button class="btn-cancel-event admin">ยกเลิกกิจกรรม</button>
+    `;
+  }
+  else {
     if (expired) {
       actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
-    } else if (type === 'all') {
+    }
+    else if (type === 'all') {
       if (isRegistered) {
         actionButtons = `
           <button class="btn-view-details">ดูรายละเอียด</button>
@@ -328,64 +337,62 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
       }
-    } else if (type === 'registration') {
-      if (!expired) {
-        actionButtons = `
-          <button class="btn-view-details">ดูรายละเอียด</button>
-          <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
-        `;
-      } else {
-        actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
-      }
-    } else if (type === 'my-event') {
+    }
+    else if (type === 'registration') {
+      actionButtons = `
+        <button class="btn-view-details">ดูรายละเอียด</button>
+        <button class="btn-cancel-registration">ยกเลิกการลงทะเบียน</button>
+      `;
+    }
+    else if (type === 'my-event') {
       actionButtons = `<button class="btn-view-details">ดูรายละเอียด</button>`;
     }
-
+  }
     if (expired) {
       card.style.opacity = '0.7';
       card.style.borderLeft = '5px solid #757575';
     }
 
     card.innerHTML = `
-      <h4>${event.name}</h4>
-      <span class="category">${event.category}</span>
-      ${statusBadge}
-      <div class="event-details">
-        <p><strong>📅 วันที่:</strong> ${new Date(event.eventDate).toLocaleString('th-TH')}</p>
-        ${expired ? '<p style="color: #f44336; font-weight: bold;">⏰ กิจกรรมนี้หมดเวลาลงทะเบียนแล้ว</p>' : ''}
-        <p><strong>👥 ผู้เข้าร่วม:</strong> ${event.currentParticipants}/${event.maxParticipants}</p>
-        ${!isFull && type === 'all' && !expired ? `<p class="seats-left">🎫 เหลือที่นั่ง ${seatsLeft} ที่</p>` : ''}
-        <p class="description">${event.description || 'ไม่มีรายละเอียด'}</p>
-      </div>
-      <div class="event-action-row">
-        ${actionButtons}
-      </div>
-    `;
+    <h4>${event.name}</h4>
+    <span class="category">${event.category}</span>
+    ${statusBadge}
+    <div class="event-details">
+      <p><strong>📅 วันที่:</strong> ${new Date(event.eventDate).toLocaleString('th-TH')}</p>
+      <p><strong>👥 ผู้เข้าร่วม:</strong> ${event.currentParticipants}/${event.maxParticipants}</p>
+
+      ${CURRENT_USER_ROLE !== 'ADMIN' && !isFull && !expired && type === 'all'
+        ? `<p class="seats-left">🎫 เหลือที่นั่ง ${seatsLeft} ที่</p>`
+        : ''}
+
+      <p class="description">${event.description || 'ไม่มีรายละเอียด'}</p>
+    </div>
+
+    <div class="event-action-row">${actionButtons}</div>
+  `;
+
 
     const viewBtn = card.querySelector('.btn-view-details');
-    if (viewBtn) {
-      viewBtn.addEventListener('click', () => showEventDetails(event));
-    }
+  if (viewBtn) viewBtn.addEventListener('click', () => showEventDetails(event));
 
+  // USER
+  if (CURRENT_USER_ROLE !== 'ADMIN') {
     const registerBtn = card.querySelector('.btn-register');
-    if (registerBtn && !registerBtn.disabled) {
-      registerBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleRegister(event.id);
-      });
-    }
+    if (registerBtn) registerBtn.addEventListener('click', () => handleRegister(event.id));
 
     const cancelBtn = card.querySelector('.btn-cancel-registration');
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleCancelRegistration(event.id);
-      });
-    }
-
-    return card;
+    if (cancelBtn) cancelBtn.addEventListener('click', () => handleCancelRegistration(event.id));
   }
 
+  // ADMIN
+  if (CURRENT_USER_ROLE === 'ADMIN') {
+    const cancelEventBtn = card.querySelector('.btn-cancel-event');
+    if (cancelEventBtn)
+      cancelEventBtn.addEventListener('click', () => handleCancelEvent(event.id));
+  }
+
+  return card;
+}
   function showEventDetails(event) {
     const actualStatus = getEventStatus(event);
     const expired = isEventExpired(event.eventDate);

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+    <title>Togther Admin — Events Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div id="root"><div id="app-loading" style="padding:24px;text-align:center;font-family:inherit;color:var(--muted)">Loading admin dashboard…</div></div>
+
+    <script>
+      // Show JS errors in the page for easier debugging
+      window.addEventListener('error', function(evt){
+        try{
+          var root = document.getElementById('root');
+          if(root){
+            root.innerHTML = '<div style="padding:24px;color:#9b2236;font-family:inherit;">Error loading dashboard: '+(evt && evt.message ? evt.message : 'Unknown error')+"</div>";
+          }
+        }catch(e){ console.error(e); }
+      });
+      window.addEventListener('unhandledrejection', function(evt){
+        try{
+          var root = document.getElementById('root');
+          if(root){
+            root.innerHTML = '<div style="padding:24px;color:#9b2236;font-family:inherit;">Unhandled promise rejection: '+(evt && evt.reason ? evt.reason : 'Unknown')+"</div>";
+          }
+        }catch(e){ console.error(e); }
+      });
+    </script>
+
+    <!-- React and MUI UMD builds via unpkg -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@emotion/react@11.11.0/dist/emotion-react.umd.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@emotion/styled@11.11.0/dist/emotion-styled.umd.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@mui/material@5.14.11/umd/material-ui.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@mui/icons-material@5.14.0/umd/material-ui-icons.development.js"></script>
+    <script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <script>
+      // Quick runtime dependency check — show a clear message if a CDN failed to load.
+      (function(){
+        var missing = [];
+        if(!window.React) missing.push('React');
+        if(!window.ReactDOM) missing.push('ReactDOM');
+        if(!window.MaterialUI) missing.push('MUI (MaterialUI)');
+        if(!window.MaterialUIIcons) missing.push('MUI Icons (MaterialUIIcons)');
+        if(!window.Babel) missing.push('Babel (babel-standalone)');
+        if(missing.length){
+          var root = document.getElementById('root');
+          if(root) root.innerHTML = '<div style="padding:24px;color:#9b2236;font-family:inherit;">Required libraries failed to load: <strong>'+missing.join(', ')+'</strong>.<br/>Check network, or serve the file via a local server and try again.</div>';
+          // Also log to console for more detail
+          console.error('Missing libraries:', missing);
+        }
+      })();
+    </script>
+
+    <script type="text/babel">
+      const {useState, useEffect, useMemo} = React;
+      const {
+        Box, AppBar, Toolbar, Typography, Button, IconButton, Avatar, TextField,
+        MenuItem, Select, FormControl, InputLabel, Table, TableHead, TableBody,
+        TableRow, TableCell, TableContainer, Paper, Menu, Snackbar, Alert, CircularProgress
+      } = MaterialUI;
+      // Provide inline fallback icons if MUI Icons CDN didn't expose `MaterialUIIcons`.
+      let MoreVert, Logout, Search;
+      try{
+        if(window.MaterialUIIcons){
+          const icons = MaterialUIIcons;
+          MoreVert = icons.MoreVert || icons.MoreVertOutlined || (()=>null);
+          Logout = icons.Logout || icons.ExitToApp || (()=>null);
+          Search = icons.Search || icons.SearchOutlined || (()=>null);
+        } else {
+          throw new Error('no MaterialUIIcons');
+        }
+      }catch(e){
+        // Simple SVG fallbacks using currentColor so CSS can style them
+        MoreVert = (props) => (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
+            <circle cx="12" cy="5" r="1.5" />
+            <circle cx="12" cy="12" r="1.5" />
+            <circle cx="12" cy="19" r="1.5" />
+          </svg>
+        );
+        Logout = (props) => (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg" {...props}>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <path d="M16 17l5-5-5-5" />
+            <path d="M21 12H9" />
+          </svg>
+        );
+        Search = (props) => (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg" {...props}>
+            <circle cx="11" cy="11" r="6" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+        );
+      }
+
+      /* Mock data with sample events */
+      const initialEvents = [
+        {id:'EVT-001', name:'Welcome Week: Club Fair', creator:'Alice Chen', datetime:'2025-09-01 10:00', status:'Pending'},
+        {id:'EVT-002', name:'CS Colloquium: AI Ethics', creator:'Dr. Samir Patel', datetime:'2025-09-05 14:00', status:'Approved'},
+        {id:'EVT-003', name:'Student Government Meeting', creator:'Liam Johnson', datetime:'2025-09-07 18:00', status:'Cancelled'},
+        {id:'EVT-004', name:'Hackathon: 24hr Build', creator:'Dev Team', datetime:'2025-09-12 09:00', status:'Pending'},
+        {id:'EVT-005', name:'Art Exhibition: New Voices', creator:'Sara Gomez', datetime:'2025-09-20 17:00', status:'Rejected'},
+      ];
+
+      function Header({onLogout}){
+        return (
+          <Box sx={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:3, width:'100%'}}>
+            <div className="brand" style={{display:'flex', alignItems:'center', gap:12, flex:1}}>
+              <div style={{display:'flex', flexDirection:'column', gap:2}}>
+                <div className="brand-title">TUgether Admin</div>
+                <div className="brand-sub">Event Management Dashboard</div>
+              </div>
+            </div>
+            <div className="topbar-actions" style={{display:'flex', alignItems:'center', gap:20}}>
+              <div style={{textAlign:'right'}}>
+                <div style={{fontWeight:700, fontSize:14, color:'white'}}>Admin User</div>
+                <div className="user-email">admin@togther.edu</div>
+              </div>
+              <Avatar sx={{bgcolor:'#FFD13F', color:'#C3002F', width:40, height:40, fontSize:13, fontWeight:700}}>AU</Avatar>
+              <Button variant="contained" onClick={onLogout} startIcon={<Logout/>} sx={{background:'transparent', color:'white', border:'2px solid white', padding:'6px 14px', fontSize:'13px', fontWeight:700, '&:hover':{background:'rgba(255,255,255,0.1)'}}} >LOGOUT</Button>
+            </div>
+          </Box>
+        )
+      }
+
+      function StatusChip({status}){
+        const cls = status.toLowerCase();
+        return <span className={`chip ${cls}`}>{status}</span>
+      }
+
+      function Filters({query, setQuery, statusFilter, setStatusFilter, startDate, setStartDate, endDate, setEndDate}){
+        return (
+          <div className="filters" style={{alignItems:'center'}}>
+            <div className="searchWrap">
+              <TextField fullWidth size="small" placeholder="Search events by name, creator, or ID..." value={query} onChange={e=>setQuery(e.target.value)} InputProps={{startAdornment: <Search style={{marginRight:8}}/>}} />
+            </div>
+
+            <div className="filter-actions">
+              <FormControl size="small" sx={{minWidth:160}}>
+                <InputLabel>All Statuses</InputLabel>
+                <Select value={statusFilter} label="All Statuses" onChange={e=>setStatusFilter(e.target.value)}>
+                  <MenuItem value="All">All</MenuItem>
+                  <MenuItem value="Pending">Pending</MenuItem>
+                  <MenuItem value="Approved">Approved</MenuItem>
+                  <MenuItem value="Rejected">Rejected</MenuItem>
+                  <MenuItem value="Cancelled">Cancelled</MenuItem>
+                </Select>
+              </FormControl>
+
+              <Button size="small" variant="outlined" startIcon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 11H17" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 7H17" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}>Filter by date range</Button>
+            </div>
+          </div>
+        )
+      }
+
+      function EventsTable({events, onChangeStatus, loading, error}){
+        const [menuAnchor, setMenuAnchor] = useState(null);
+        const [menuEvent, setMenuEvent] = useState(null);
+
+        const openMenu = (e, ev) => { setMenuAnchor(e.currentTarget); setMenuEvent(ev); }
+        const closeMenu = ()=> { setMenuAnchor(null); setMenuEvent(null); }
+
+        const handleAction = (newStatus) => {
+          if(menuEvent){ onChangeStatus(menuEvent.id, newStatus); }
+          closeMenu();
+        }
+
+        if(loading) return <div className="state-center"><CircularProgress/></div>
+        if(error) return <div className="state-center"><Typography color="error">Error loading events. Try again later.</Typography></div>
+        if(events.length===0) return <div className="state-center"><div style={{textAlign:'center'}}><Typography sx={{mb:1}}>No events found</Typography><div className="muted">Try adjusting filters or create a new event.</div></div></div>
+
+        return (
+          <div className="table-wrap">
+            <TableContainer component={Paper} sx={{boxShadow:'none'}}>
+              <Table sx={{minWidth:650}}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{width:90, display:{xs:'none', sm:'table-cell'}}}><strong>ID</strong></TableCell>
+                    <TableCell sx={{display:{xs:'none', sm:'table-cell'}}}><strong>Event Name</strong></TableCell>
+                    <TableCell sx={{width:160, display:{xs:'none', md:'table-cell'}}}><strong>Creator</strong></TableCell>
+                    <TableCell sx={{width:160, display:{xs:'none', md:'table-cell'}}}><strong>Date/Time</strong></TableCell>
+                    <TableCell sx={{width:130}}><strong>Current Status</strong></TableCell>
+                    <TableCell align="right" sx={{width:80}}><strong>Actions</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {events.map(ev=> (
+                    <TableRow key={ev.id} hover sx={{display:{xs:'block', sm:'table-row'}, mb:{xs:1}}}>
+                      <TableCell data-label="ID" sx={{minWidth:110, display:{xs:'block', sm:'table-cell'}, pb:{xs:0.5}}}>{ev.id}</TableCell>
+                      <TableCell data-label="Event" sx={{minWidth:220, display:{xs:'block', sm:'table-cell'}, pb:{xs:0.5}}}>
+                        <div style={{fontWeight:700}}>{ev.name}</div>
+                        <div className="muted" style={{fontSize:13}}>{ev.name.split(':')[0]}</div>
+                      </TableCell>
+                      <TableCell data-label="Creator" sx={{display:{xs:'none', md:'table-cell'}, pb:{xs:0.5}}}>{ev.creator}</TableCell>
+                      <TableCell data-label="Date/Time" sx={{display:{xs:'none', md:'table-cell'}, pb:{xs:0.5}}}>{ev.datetime}</TableCell>
+                      <TableCell data-label="Status" sx={{pb:{xs:0.5}}}><StatusChip status={ev.status} /></TableCell>
+                      <TableCell align="right" data-label="Actions" sx={{pb:{xs:0.5}}}>
+                        <IconButton size="small" onClick={(e)=>openMenu(e, ev)}>
+                          <MoreVert />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeMenu}>
+              <MenuItem onClick={()=>handleAction('Approved')}>Approve</MenuItem>
+              <MenuItem onClick={()=>handleAction('Rejected')}>Reject</MenuItem>
+              <MenuItem onClick={()=>handleAction('Cancelled')}>Cancel</MenuItem>
+            </Menu>
+          </div>
+        )
+      }
+
+      function App(){
+        const [events, setEvents] = useState([]);
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState(false);
+        const [snack, setSnack] = useState(null);
+
+        // Filters
+        const [query, setQuery] = useState('');
+        const [statusFilter, setStatusFilter] = useState('All');
+        const [startDate, setStartDate] = useState('');
+        const [endDate, setEndDate] = useState('');
+
+        useEffect(()=>{
+          setLoading(true);
+          setError(false);
+          const t = setTimeout(()=>{
+            // load mock data
+            setEvents(initialEvents);
+            setLoading(false);
+          }, 600);
+          return ()=>clearTimeout(t);
+        },[]);
+
+        const filtered = useMemo(()=>{
+          return events.filter(ev=>{
+            if(query && !(`${ev.id} ${ev.name} ${ev.creator}`.toLowerCase().includes(query.toLowerCase()))) return false;
+            if(statusFilter!=='All' && ev.status!==statusFilter) return false;
+            if(startDate){
+              const evDate = new Date(ev.datetime.split(' ')[0]);
+              const s = new Date(startDate);
+              if(evDate < s) return false;
+            }
+            if(endDate){
+              const evDate = new Date(ev.datetime.split(' ')[0]);
+              const e = new Date(endDate);
+              if(evDate > e) return false;
+            }
+            return true;
+          })
+        }, [events, query, statusFilter, startDate, endDate]);
+
+        const changeStatus = (id, newStatus) => {
+          setEvents(prev => prev.map(ev => ev.id===id ? {...ev, status:newStatus} : ev));
+          setSnack({severity:'success', message:`Event ${id} set to ${newStatus}`});
+        }
+
+        const doLogout = ()=>{ setSnack({severity:'info', message:'Logout clicked (demo)'}); }
+
+        return (
+          <div className="container">
+            <div className="site-topbar"><Header onLogout={doLogout} /></div>
+            <Paper sx={{p:3, mb:2}}>
+              <Typography variant="h6" sx={{mb:0.5, fontWeight:700}}>Events Overview</Typography>
+              <Typography className="muted" sx={{mb:2, fontSize:'13px'}}>Manage and review all university events</Typography>
+
+              <Filters query={query} setQuery={setQuery} statusFilter={statusFilter} setStatusFilter={setStatusFilter} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} />
+
+              <EventsTable events={filtered} onChangeStatus={changeStatus} loading={loading} error={error} />
+
+              <div className="stats-row">
+                <div className="stat-card">
+                  <div className="label">Total Events</div>
+                  <div className="value">{events.length}</div>
+                </div>
+                <div className="stat-card pending">
+                  <div className="label">Pending</div>
+                  <div className="value">{events.filter(e=>e.status==='Pending').length}</div>
+                </div>
+                <div className="stat-card approved">
+                  <div className="label">Approved</div>
+                  <div className="value">{events.filter(e=>e.status==='Approved').length}</div>
+                </div>
+                <div className="stat-card rejected">
+                  <div className="label">Rejected</div>
+                  <div className="value">{events.filter(e=>e.status==='Rejected').length}</div>
+                </div>
+              </div>
+            </Paper>
+
+            <div style={{display:'flex', gap:12, alignItems:'center'}}>
+              <div className="muted">Showing <strong>{filtered.length}</strong> events</div>
+              <div style={{marginLeft:'auto'}}>
+                <Button size="small" onClick={()=>{setLoading(true); setTimeout(()=>{ setEvents([]); setLoading(false); },600)}}>SIMULATE EMPTY</Button>
+                <Button size="small" onClick={()=>{setLoading(true); setTimeout(()=>{ setError(true); setLoading(false); },600)}}>SIMULATE ERROR</Button>
+              </div>
+            </div>
+
+            <Snackbar open={Boolean(snack)} autoHideDuration={2800} onClose={()=>setSnack(null)} anchorOrigin={{vertical:'bottom', horizontal:'center'}}>
+              {snack && <Alert onClose={()=>setSnack(null)} severity={snack.severity} sx={{width:'100%'}}>{snack.message}</Alert>}
+            </Snackbar>
+
+          </div>
+        )
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+    </script>
+  </body>
+</html>
